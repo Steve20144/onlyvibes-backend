@@ -1,0 +1,180 @@
+## Backend Architecture
+
+The backend of **OnlyVibes** is implemented as a RESTful API using **Node.js** with the **Express** framework, documented with **Swagger/OpenAPI**. It is responsible for exposing all core functionality of the platform—user and venue management, event discovery, social interactions (likes, follows, reviews), and notification handling—through a set of well-defined HTTP endpoints.
+
+### Tech Stack
+
+* **Runtime:** Node.js
+* **Framework:** Express.js
+* **API Documentation:** Swagger UI, generated from `OnlyVibes_API.json` (OpenAPI 3.x)
+* **Design Patterns:** Proxy, Singleton, Observer
+* **Architecture Style:** Layered (Routing → Controller → Service → Data Access)
+* **Auth & Security:** Role-based access control (RBAC), token-based authentication (e.g. JWT-ready design)
+
+---
+
+## Layered Structure
+
+The backend is organized into layers to keep the system modular, testable, and extensible:
+
+1. **Routing Layer (Express Routers)**
+
+   * Defines REST endpoints such as:
+
+     * `POST /auth/login`, `POST /auth/register`
+     * `GET /events`, `GET /events/{eventId}`
+     * `POST /events`, `PATCH /events/{eventId}` (for verified users / venues)
+     * `POST /events/{eventId}/like`, `DELETE /events/{eventId}/like`
+     * `GET /users/{userId}/notifications`
+   * Routes are grouped by resource (e.g. `eventsRouter`, `usersRouter`, `venuesRouter`) to keep concerns separated.
+   * Each route delegates to controller methods and applies middleware for authentication and role checks.
+
+2. **Controller Layer**
+
+   * Controllers receive HTTP requests, validate input, call the appropriate service methods, and map service responses to standardized HTTP responses.
+   * They enforce consistent error handling by returning the shared error schema:
+
+     ```json
+     {
+       "code": 400,
+       "message": "Invalid request parameters"
+     }
+     ```
+   * Controllers do not contain business logic; they orchestrate request/response flow and call into services.
+
+3. **Service Layer (Business Logic)**
+
+   * Implements the core behavior for:
+
+     * Creating and updating events
+     * Managing user profiles and roles (Admin, Registered User, Verified User, Venue)
+     * Handling verification requests and their lifecycle
+     * Computing personalized recommendations
+     * Managing likes, follows, and reviews
+     * Triggering notifications and reminders
+   * This layer enforces **role-based access control** (RBAC), checking whether the current user is allowed to perform an action (e.g. only verified users and venues may create events, admins may approve verifications, etc.).
+   * The service layer is where the main design patterns are applied.
+
+4. **Data Access Layer (Repository / Proxy)**
+
+   * Encapsulates all database operations (CRUD for User, Event, Venue, Notification, Recommendation, etc.).
+   * A **Proxy pattern** is used to mediate access to the database:
+
+     * Provides a clean abstraction over the underlying DB client.
+     * Can enforce extra checks (e.g. role/ownership validation) before executing queries.
+     * Makes it easier to swap or mock the database in later iterations.
+
+---
+
+## Design Patterns in the Backend
+
+### Proxy Pattern
+
+Used mainly in the data access layer to wrap database operations. It allows the system to:
+
+* Centralize authorization checks for sensitive operations.
+* Log or cache queries transparently.
+* Hide low-level DB specifics from the rest of the application.
+
+### Singleton Pattern
+
+A **Singleton** is used for components that must have a single, shared instance across the application:
+
+* Application-wide configuration (e.g. environment variables, DB connection settings).
+* Database connection pool or ORM client.
+* Potentially the notification dispatcher or recommendation engine state.
+
+This ensures a consistent configuration and avoids duplicated connections or conflicting state.
+
+### Observer Pattern
+
+The **Observer** pattern underpins the notification and reminder system:
+
+* Certain events in the system (e.g. *new event created by a followed venue*, *upcoming event reminder window*, *verification approved*) act as **subjects**.
+* Registered listeners (observers), such as the notification service, are triggered when these subjects emit events.
+* Observers create and persist `Notification` entities and may send push/email/in-app alerts to relevant users.
+
+This decouples the core logic (e.g. event creation) from secondary concerns (notifications), keeping the backend easier to extend.
+
+---
+
+## Security & Role-Based Access Control
+
+Security is integrated at both the routing and service layers:
+
+* **Authentication Middleware**
+
+  * Validates incoming tokens (e.g. JWT) and attaches the authenticated user to the request context.
+  * Required for endpoints that act on user-specific resources (likes, follows, notifications, event creation, verification, etc.).
+
+* **Role-Based Middleware**
+
+  * Guards endpoints according to the roles specified in the OpenAPI spec:
+
+    * Admin
+    * User / Registered User
+    * Verified User
+    * Venue
+  * Example:
+
+    * `POST /events`: allowed only for verified users and venues.
+    * `PATCH /verifications/{id}`: allowed only for admins.
+
+* **Standardized Error Responses**
+
+  * Uses consistent HTTP status codes:
+
+    * `400 Bad Request` – invalid parameters/body
+    * `401 Unauthorized` – missing/invalid credentials
+    * `403 Forbidden` – authenticated but not allowed for this role
+    * `404 Not Found` – resource does not exist
+    * `500 Internal Server Error` – unexpected failure
+  * All errors follow the shared `{ "code", "message" }` schema defined in the OpenAPI spec.
+
+---
+
+## Resource Modeling & Endpoints
+
+The backend implements REST endpoints around the main resources:
+
+* **User** – base profile, preferences, and role (Registered, Verified, Admin).
+* **Venue** – venue profile, description, location, and associated events.
+* **Event** – title, description, time, venue, creator (verified user or venue), tags, etc.
+* **Notification** – type, content, read/unread status, recipient.
+* **Recommendation** – API for retrieving events tailored to user preferences and past behavior.
+
+Each resource has structured request/response models defined in `OnlyVibes_API.json`, ensuring consistency, type safety, and automatic documentation.
+
+---
+
+## Swagger / OpenAPI Integration
+
+The OnlyVibes backend uses **Swagger UI** to provide live, interactive documentation:
+
+* **OpenAPI Specification**
+
+  * The `OnlyVibes_API.json` file defines:
+
+    * All endpoints, HTTP methods, paths, and parameters.
+    * Request/response bodies for each operation.
+    * Authentication requirements and allowed roles.
+    * Error schemas and status codes.
+
+* **Express Integration**
+
+  * Swagger UI is served via a dedicated route (e.g. `GET /api-docs`).
+  * The OpenAPI spec is loaded into Swagger, enabling:
+
+    * Interactive testing of the API endpoints.
+    * Automatic visualization of models (User, Event, Venue, Notification, Recommendation).
+    * Clear mapping between user stories / functional requirements and the actual API.
+
+Because the API mirrors the earlier requirements and design documents, every endpoint in the backend is **traceable** to a specific user story, functional requirement, or diagram from the course assignments.
+
+---
+
+If you want, I can also:
+
+* Draft a short “Getting Started” section for running the Express backend.
+* Sketch a basic folder structure (`src/routes`, `src/controllers`, `src/services`, etc.).
+* Or generate example Express code for one or two endpoints plus their Swagger annotations.
