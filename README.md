@@ -63,7 +63,7 @@ Filtering is supported for:
 ```
 src/
 │
-├── app.js                 # Express server setup
+├── server.js                 # Express server setup
 ├── data/
 │   ├── accounts.js        # Mock user data
 │   └── events.js          # Mock event data
