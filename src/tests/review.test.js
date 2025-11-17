@@ -119,6 +119,18 @@ describe('Reviews API', () => {
     expect(res.body.message).toBe('Review updated successfully');
   });
 
+  test('DELETE /events/:eventId/reviews/:reviewId removes review', async () => {
+    const res = await request(app).delete('/events/2/reviews/2');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toBeNull();
+    expect(res.body.message).toBe('Review deleted successfully');
+
+    const after = await request(app).get('/events/2/reviews');
+    expect(after.body.data.find((review) => review.reviewId === 2)).toBeUndefined();
+  });
+
   test('GET /users/:userId/reviewed-events returns summary', async () => {
     const res = await request(app).get('/users/user-1/reviewed-events');
 
