@@ -2,6 +2,7 @@
 import express from 'express';
 import accountRoutes from './routes/accountRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.get('/health', (req, res) => {
  */
 app.use('/accounts', accountRoutes);
 app.use('/events', eventRoutes);
+app.use(reviewRoutes);
 
 /**
  * 404 handler
