@@ -2,6 +2,7 @@
 import request from 'supertest';
 import app from '../app.js';
 import { events } from '../data/events.js';
+import { eventLikes, resetEventLikes } from '../data/eventLikes.js';
 
 /**
  * Reset mock events before each test.
@@ -36,6 +37,12 @@ beforeEach(() => {
       isCancelled: false
     }
   );
+
+  resetEventLikes([
+    { userId: 'user-1', eventId: 1, likedAt: new Date(Date.now() - 1000) },
+    { userId: 'user-1', eventId: 2, likedAt: new Date(Date.now() - 500) },
+    { userId: 'user-2', eventId: 2, likedAt: new Date(Date.now() - 200) }
+  ]);
 });
 
 describe('Events API', () => {
@@ -85,6 +92,7 @@ describe('Events API', () => {
     expect(res.body.message).toBe('Event not found');
   });
 
+  
   test('POST /events creates a new event', async () => {
     const newEvent = {
       title: 'Art Gallery Opening',
@@ -107,6 +115,7 @@ describe('Events API', () => {
     expect(res.body.data.title).toBe('Art Gallery Opening');
     expect(res.body.message).toBe('Event created successfully');
   });
+
 
   test('PUT /events/:id updates an existing event', async () => {
     const res = await request(app)
@@ -159,6 +168,7 @@ describe('Events API', () => {
     expect(res.body.message).toMatch(/dateTime must be a valid ISO date string/i);
   });
 
+
   test('DELETE /events/:id removes an event', async () => {
   const res = await request(app).delete('/events/1');
 
@@ -167,5 +177,25 @@ describe('Events API', () => {
   expect(res.body.message).toBe('Event deleted successfully');
   expect(events.find((e) => e.eventId === 1)).toBeUndefined();
 });
+
+  test('GET /events/liked/:userId returns liked events', async () => {
+    const res = await request(app).get('/events/liked/user-1');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toHaveLength(2);
+    expect(res.body.data[0].eventId).toBe(2);
+    expect(res.body.message).toBe('Liked events retrieved');
+  });
+
+  test('GET /events/liked/:userId returns friendly message when none', async () => {
+    eventLikes.length = 0;
+    const res = await request(app).get('/events/liked/user-3');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data).toHaveLength(0);
+    expect(res.body.message).toBe('User has not liked any events yet');
+  });
 
 });

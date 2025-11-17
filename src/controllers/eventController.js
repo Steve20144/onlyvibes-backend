@@ -4,7 +4,8 @@ import {
   getEventByIdService,
   createEventService,
   updateEventService,
-  deleteEventService
+  deleteEventService,
+  getLikedEventsByUserService
 } from '../services/eventService.js';
 
 const editableEventFields = new Set([
@@ -242,6 +243,32 @@ export const deleteEvent = async (req, res, next) => {
       data: null,
       error: null,
       message: 'Event deleted successfully'
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+/**
+ * GET /events/liked/:userId - list events liked by a user
+ */
+export const listLikedEvents = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    if (!userId || typeof userId !== 'string') {
+      throw validationError('userId parameter is required.');
+    }
+
+    const likedEvents = await getLikedEventsByUserService(userId.trim());
+
+    return res.status(200).json({
+      success: true,
+      data: likedEvents,
+      error: null,
+      message:
+        likedEvents.length === 0
+          ? 'User has not liked any events yet'
+          : 'Liked events retrieved'
     });
   } catch (error) {
     return next(error);
