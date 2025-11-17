@@ -1,147 +1,71 @@
-## OnlyVibes Backend – MVP Implementation
+# OnlyVibes API
 
-This repository contains the **MVP backend** for the *OnlyVibes* application.
-It is designed according to the **Swagger OpenAPI specification** provided in the assignment and includes:
+Production-ready Node.js/Express REST API for the OnlyVibes platform. The service exposes account, verification, event, review, notification, reminder, and search capabilities with basic authentication, role-based authorization, and graceful fallback to in-memory mock data when MongoDB isn’t configured.
 
-* Minimal Express.js server
-* In-memory mock database (no real DB)
-* Accounts module (Sign Up + Login)
-* Events module (Create, List, Edit, Delete)
-* Reviews module (Delete review)
-* Fully structured MVC file tree
+## Features
+- OpenAPI-aligned endpoints for accounts, events, reviews, notifications, reminders, likes, follows, and search
+- Basic auth with role enforcement via `x-user-role` header for non-production testing
+- Async/await controllers with centralized error handling and consistent response envelopes `{ success, data, message, error }`
+- Toggle between MongoDB Atlas (or any Mongo instance) and mock data automatically by omitting `MONGO_URI`
+- Express validation middleware powered by `express-validator`
+- Helmet, CORS, and logging middleware for production readiness
 
-This backend is intentionally lightweight and mock-based to satisfy the requirements of the first deliverable.
+## Getting Started
 
----
+### Requirements
+- Node.js 18+
+- npm 9+
+- (Optional) MongoDB connection string
 
-## 🚀 Features Implemented (MVP)
-
-### ✅ Authentication / Accounts
-
-Implemented using mock data (no hashing, no tokens):
-
-| Endpoint               | Description                         |
-| ---------------------- | ----------------------------------- |
-| `POST /accounts`       | Create a new user account (Sign Up) |
-| `POST /accounts/login` | Mock login (email + password)       |
-| `GET /accounts/:id`    | Get account by ID                   |
-| `PUT /accounts/:id`    | Update account fields               |
-| `DELETE /accounts/:id` | Delete account                      |
-
-**Entities covered:** `Account`, `NewAccount`, `UpdateAccount`
-
----
-
-### ✅ Events (Main MVP feature)
-
-Endpoints fully aligned with Swagger:
-
-| Endpoint                  | Description                                              |
-| ------------------------- | -------------------------------------------------------- |
-| `GET /events`             | Get all events (with filters) — used for the Main Screen |
-| `POST /events`            | Create an event — used for Create Event page             |
-| `GET /events/:eventId`    | Get event by ID — used before editing                    |
-| `PUT /events/:eventId`    | Edit event details — used for Verified User Edit page    |
-| `DELETE /events/:eventId` | Delete an event                                          |
-
-**Entities covered:** `Event`, `EventCreate`
-
-Filtering is supported for:
-`category`, `location`, `fromDate`, `toDate`, `sort`.
-
----
-
-### ✅ Reviews (MVP action)
-
-
-**TBD**
-
----
-
-## 📁 Project Structure
-
-```
-src/
-│
-├── server.js                 # Express server setup
-├── data/
-│   ├── accounts.js        # Mock user data
-│   └── events.js          # Mock event data
-│
-├── models/
-│   ├── account.js         # Account model + validators
-│   └── event.js           # Event model + validators
-│
-├── controllers/
-│   ├── accountController.js
-│   └── eventController.js
-│
-└── routes/
-    ├── accountRoutes.js
-    └── eventRoutes.js
-```
-
----
-
-## 🎯 Goals of This MVP
-
-This implementation satisfies the requirements of the assignment:
-
-### ✔ ≥ 10 routes
-
-### ✔ ≥ 3 different entities
-
-### ✔ Full CRUD for at least one entity (“events”)
-
-### ✔ Swagger-based structure
-
-### ✔ Clean router–controller–model architecture
-
-### ✔ Ready for frontend integration (React or other)
-
----
-
-## 🧪 How to Run the Backend
-
-### 1. Install dependencies
-
+### Installation
 ```bash
 npm install
 ```
 
-### 2. Start the server
+### Environment Variables
+Copy `.env.example` to `.env` and adjust as needed.
 
+| Variable | Description | Default |
+| --- | --- | --- |
+| `PORT` | API port | `4000` |
+| `MONGO_URI` | Mongo connection string | _empty => mock mode_ |
+| `BASIC_AUTH_USER` | Basic auth username | `onlyvibes` |
+| `BASIC_AUTH_PASS` | Basic auth password | `supersecret` |
+| `RECOMMENDATION_LIMIT` | Max recommendations returned | `5` |
+
+### Running the API
 ```bash
-npm start
+npm run dev
+```
+The server logs whether it’s connected to MongoDB or running with mock data.
+
+### Authentication & Roles
+All endpoints require Basic Auth. Provide the acting role via the optional `x-user-role` header (`user`, `verified_user`, `venue`, `admin`). Example header:
+```
+Authorization: Basic b25seXZpYmVzOnN1cGVyc2VjcmV0
+x-user-role: verified_user
 ```
 
-The server runs on:
-
+### Testing
+```bash
+npm test
 ```
-http://localhost:3000
-```
 
----
+### Key Endpoints
+- `POST /api/accounts` – Create account
+- `GET /api/accounts/:userId` – View account profile
+- `POST /api/accounts/:userId/verification-request` – Submit verification request
+- `GET /api/accounts/:userId/recommendations` – Personalized recommendations
+- `POST /api/accounts/:userId/follow` – Follow another user/venue
+- `GET /api/events` – Browse events with filters
+- `POST /api/events` – Create event (verified/venue/admin)
+- `POST /api/events/:eventId/like` – Like an event
+- `POST /api/events/:eventId/reviews` – Submit a review
+- `GET /api/search` – Search events, venues, or users
 
-## 📌 Notes About This MVP
+## Development Notes
+- Services abstract all data access and gracefully toggle between MongoDB and mock arrays.
+- Controllers include exhaustive try/catch blocks and JSDoc comments per requirement.
+- Middleware folder houses logging, auth, validation, not-found, and error handling utilities.
 
-* No database is used — all data is in-memory.
-* Passwords are stored in plain text **only for mock/demo purposes**.
-* Login returns a *mock token* for frontend convenience.
-* When the server restarts, all data resets.
-* The directory structure is built to support easy expansion for the full project.
-
----
-
-## 📚 Swagger Compatibility
-
-This backend is written directly from your **Swagger JSON spec**, particularly the sections for:
-
-* `/accounts`
-* `/events`
-* `/events/{eventId}/reviews/{reviewId}`
-* Entities under `components.schemas` (Account, Event, Review, EventCreate, etc.)
-
-Endpoints follow the same naming, fields, and expected responses (except where simplifications were required for an MVP mock backend).
-
----
+Enjoy building with OnlyVibes! 🎶

@@ -1,1 +1,12 @@
-/node_modules
+node_modules/
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+coverage/
+logs/
+dist/
+*.log
+.DS_Store
+.idea/
+.vscode/
