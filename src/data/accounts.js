@@ -1,25 +1,32 @@
 // src/data/accounts.js
 
-// Mock accounts για το MVP (passwords σε plain text ΜΟΝΟ για demo!)
-const accounts = [
+export const accounts = [
   {
-    id: 1,
-    username: "demoUser",
-    email: "demo@example.com",
-    password: "password123",
-    role: "user",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    id: 'user-1',
+    username: 'partylover',
+    email: 'user1@example.com',
+    password: 'password1',
+    role: 'user',
+    isVerified: true,
+    preferences: ['music', 'party'],
+    venueDetails: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
   },
   {
-    id: 2,
-    username: "demoVenue",
-    email: "venue@example.com",
-    password: "venue123",
-    role: "venue",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
+    id: 'venue-1',
+    username: 'club-vibes',
+    email: 'venue@example.com',
+    password: 'venuepass',
+    role: 'venue',
+    isVerified: true,
+    preferences: [],
+    venueDetails: {
+      location: 'Athens Center',
+      taxIdentificationNumHashed: 123456,
+      businessRegistrationNumHashed: 987654
+    },
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }
 ];
-
-module.exports = { accounts };

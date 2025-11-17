@@ -1,25 +1,9 @@
-const express = require('express');
-const cors = require('cors');
-const accountRoutes = require("./routes/accountRoutes");
-const eventsRoutes = require("./routes/events.routes");
+import express from 'express';
+import accountRoutes from './routes/accountRoutes.js';
+import eventRoutes from './routes/eventRoutes.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
 app.use(express.json());
-app.use("/accounts", accountRoutes);
-app.use("/events", eventsRoutes);
 
-app.get('/', (req, res) => {
-    res.send('Server is running');
-});
-
-app.use(cors());
-
-app.get('/', (req, res) => {
-    res.send('Server is running');
-});
-
-app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
-});
+app.use('/accounts', accountRoutes);
+app.use('/events', eventRoutes);

@@ -1,29 +1,28 @@
-// src/routes/events.routes.js
-
-const express = require("express");
-const {
-  getEvents,
-  createEvent,
+// src/routes/eventRoutes.js
+import { Router } from 'express';
+import {
+  listEvents,
   getEventById,
+  createEvent,
   updateEvent,
-  deleteEvent,
-} = require("../controllers/events.controller");
+  deleteEvent
+} from '../controllers/eventController.js';
 
-const router = express.Router();
+const router = Router();
 
-// GET /events  (list with optional filters)
-router.get("/", getEvents);
+// GET /events - list / filter events
+router.get('/', listEvents);
 
-// POST /events  (create new event)
-router.post("/", createEvent);
+// GET /events/:id - get a single event
+router.get('/:id', getEventById);
 
-// GET /events/:eventId  (get by ID)
-router.get("/:eventId", getEventById);
+// POST /events - create an event
+router.post('/', createEvent);
 
-// PUT /events/:eventId  (update event)
-router.put("/:eventId", updateEvent);
+// PUT /events/:id - update an event
+router.put('/:id', updateEvent);
 
-// DELETE /events/:eventId  (delete event)
-router.delete("/:eventId", deleteEvent);
+// DELETE /events/:id - delete an event
+router.delete('/:id', deleteEvent);
 
-module.exports = router;
+export default router;

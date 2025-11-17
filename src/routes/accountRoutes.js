@@ -1,31 +1,24 @@
-// src/routes/accountsRoutes.js
+// src/routes/accountRoutes.js
+import { Router } from 'express';
+import {
+  createAccount,
+  getAccountById,
+  updateAccount,
+  deleteAccount
+} from '../controllers/accountController.js';
 
-const express = require("express");
-const {
-  createAccount,   // POST /accounts/register
-  loginAccount,    // POST /accounts/login
-  getAccountById,  // GET /accounts/:id
-  updateAccount,   // PUT /accounts/:id
-  deleteAccount,   // DELETE /accounts/:id
-} = require("../controllers/accountController");
+const router = Router();
 
-const router = express.Router();
+// POST /accounts - create a new account
+router.post('/', createAccount);
 
-// SIGN UP - create account
-// POST /accounts
-router.post("/register", createAccount);
+// GET /accounts/:id - get a single account
+router.get('/:id', getAccountById);
 
-// LOGIN - mock authentication
-// POST /accounts/login
-router.post("/login", loginAccount);
+// PUT /accounts/:id - update an account
+router.put('/:id', updateAccount);
 
-// GET /accounts/:id
-router.get("/:id", getAccountById);
+// DELETE /accounts/:id - delete an account
+router.delete('/:id', deleteAccount);
 
-// PUT /accounts/:id
-router.put("/:id", updateAccount);
-
-// DELETE /accounts/:id
-router.delete("/:id", deleteAccount);
-
-module.exports = router;
+export default router;
