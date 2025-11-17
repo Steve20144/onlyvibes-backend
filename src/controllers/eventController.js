@@ -9,10 +9,6 @@ import {
 
 /**
  * List events (optionally filtered).
- * @async
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
  */
 export const listEvents = async (req, res, next) => {
   try {
@@ -22,9 +18,10 @@ export const listEvents = async (req, res, next) => {
 
     let message = 'Events retrieved';
     if (events.length === 0) {
-      message = category || location
-        ? 'No events found. Try adjusting your filters.'
-        : 'No events found.';
+      message =
+        category || location
+          ? 'No events found. Try adjusting your filters.'
+          : 'No events found.';
     }
 
     return res.status(200).json({
@@ -40,10 +37,6 @@ export const listEvents = async (req, res, next) => {
 
 /**
  * Get one event by id.
- * @async
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
  */
 export const getEventById = async (req, res, next) => {
   try {
@@ -74,16 +67,10 @@ export const getEventById = async (req, res, next) => {
 
 /**
  * Create a new event.
- * @async
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
  */
 export const createEvent = async (req, res, next) => {
   try {
-    // for now we fake the creator id; later plug in auth
     const creatorId = req.body.creatorId || 'venue-1';
-
     const event = await createEventService(creatorId, req.body);
 
     return res.status(201).json({
@@ -99,10 +86,6 @@ export const createEvent = async (req, res, next) => {
 
 /**
  * Update an existing event.
- * @async
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
  */
 export const updateEvent = async (req, res, next) => {
   try {
@@ -133,10 +116,7 @@ export const updateEvent = async (req, res, next) => {
 
 /**
  * Delete an event by id.
- * @async
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
+ * (Use 200 so we can send {success, data, error, message})
  */
 export const deleteEvent = async (req, res, next) => {
   try {
@@ -154,7 +134,7 @@ export const deleteEvent = async (req, res, next) => {
       throw err;
     }
 
-    return res.status(204).json({
+    return res.status(200).json({
       success: true,
       data: null,
       error: null,

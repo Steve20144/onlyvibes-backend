@@ -1,7 +1,8 @@
 {
   "name": "onlyvibes-backend",
   "version": "1.0.0",
-  "main": "src/server.js",
+  "main": "src/app.js",
+  "type": "module",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
@@ -9,8 +10,13 @@
     "nodemon": "^3.1.11"
   },
   "scripts": {
-  "start": "node src/server.js",
-  "dev": "nodemon src/server.js"
-}
-
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "cross-env node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4"
+  }
 }

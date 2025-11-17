@@ -7,6 +7,17 @@ import {
 } from '../services/accountService.js';
 
 /**
+ * Simple email validation helper.
+ * @param {string} email
+ * @returns {boolean}
+ */
+const isValidEmail = (email) => {
+  if (!email) return false;
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+};
+
+/**
  * Create a new account.
  * @async
  * @param {import('express').Request} req
@@ -15,6 +26,45 @@ import {
  */
 export const createAccount = async (req, res, next) => {
   try {
+    const { email, name, password, role } = req.body;
+
+    // ✅ Basic validation so the tests pass and API behaves nicely
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: null,
+        message: 'Invalid or missing email'
+      });
+    }
+
+    if (!name || typeof name !== 'string') {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: null,
+        message: 'Invalid or missing name'
+      });
+    }
+
+    if (!password || typeof password !== 'string' || password.length < 4) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: null,
+        message: 'Password must be at least 4 characters'
+      });
+    }
+
+    if (!['user', 'venue'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        error: null,
+        message: 'Role must be "user" or "venue"'
+      });
+    }
+
     const account = await createAccountService(req.body);
 
     return res.status(201).json({
@@ -30,10 +80,6 @@ export const createAccount = async (req, res, next) => {
 
 /**
  * Get a single account by id.
- * @async
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
  */
 export const getAccountById = async (req, res, next) => {
   try {
@@ -59,10 +105,6 @@ export const getAccountById = async (req, res, next) => {
 
 /**
  * Update an account by id.
- * @async
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
  */
 export const updateAccount = async (req, res, next) => {
   try {
@@ -88,10 +130,7 @@ export const updateAccount = async (req, res, next) => {
 
 /**
  * Delete an account by id.
- * @async
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
+ * (Use 200 so we can send {success, data, error, message})
  */
 export const deleteAccount = async (req, res, next) => {
   try {
@@ -104,7 +143,7 @@ export const deleteAccount = async (req, res, next) => {
       throw err;
     }
 
-    return res.status(204).json({
+    return res.status(200).json({
       success: true,
       data: null,
       error: null,
