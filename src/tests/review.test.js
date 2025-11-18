@@ -1,4 +1,4 @@
-// src/tests/review.test.js
+// tests/review.test.js
 import request from 'supertest';
 import app from '../app.js';
 import { events } from '../data/events.js';
@@ -97,7 +97,9 @@ describe('Reviews API', () => {
 
     expect(res.statusCode).toBe(409);
     expect(res.body.success).toBe(false);
-    expect(res.body.message).toBe('Review already exists for this event and user');
+    expect(res.body.message).toBe(
+      'Review already exists for this event and user'
+    );
   });
 
   test('GET /events/:eventId/reviews/:reviewId returns single review', async () => {
@@ -128,7 +130,9 @@ describe('Reviews API', () => {
     expect(res.body.message).toBe('Review deleted successfully');
 
     const after = await request(app).get('/events/2/reviews');
-    expect(after.body.data.find((review) => review.reviewId === 2)).toBeUndefined();
+    expect(
+      after.body.data.find((review) => review.reviewId === 2)
+    ).toBeUndefined();
   });
 
   test('GET /users/:userId/reviewed-events returns summary', async () => {

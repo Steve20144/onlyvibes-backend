@@ -120,12 +120,16 @@ describe('Events API', () => {
   });
 
   test('DELETE /events/:id removes an event', async () => {
-  const res = await request(app).delete('/events/1');
+    const res = await request(app).delete('/events/1');
 
-  expect(res.statusCode).toBe(200);
-  expect(res.body.success).toBe(true);
-  expect(res.body.message).toBe('Event deleted successfully');
-  expect(events.find((e) => e.eventId === 1)).toBeUndefined();
-});
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toBe('Event deleted successfully');
 
+    // Verify via API instead of the mock array:
+    const after = await request(app).get('/events/1');
+    expect(after.statusCode).toBe(404);
+    expect(after.body.success).toBe(false);
+    expect(after.body.message).toBe('Event not found');
+  });
 });
