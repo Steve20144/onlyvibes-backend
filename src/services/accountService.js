@@ -1,10 +1,10 @@
 // src/services/accountService.js
 import mongoose from 'mongoose';
-import Account from '../models/Account.js'; // <- adjust path/name if needed
+import Account from '../models/account.js';         // note lowercase filename
 import { accounts } from '../data/accounts.js';
 
 /**
- * Generate a simple unique account id (used only for mock fallback).
+ * Generate a simple unique account id.
  * @returns {string}
  */
 const generateAccountId = () =>
@@ -26,35 +26,34 @@ const normalizeAccountDoc = (doc) => {
 
   const obj = doc.toObject ? doc.toObject() : doc;
 
-  // Add a top-level `id` for consistency with mock data
+  // Add a top-level `id` if missing (you already have `id` in schema, but just in case)
   if (obj._id && !obj.id) {
     obj.id = obj._id.toString();
   }
 
-  // Optional: remove internal fields
   delete obj.__v;
-
   return obj;
 };
 
 /**
  * Create a new account (user or venue).
- * Tries MongoDB first; falls back to in-memory mock data if DB is unavailable.
  * @async
  * @param {{email:string,name:string,password:string,role:string,preferences?:string[],venueDetails?:object}} payload
  * @returns {Promise<object>}
  */
 export const createAccountService = async (payload) => {
   const now = new Date();
+  const id = generateAccountId();
 
   if (isDbConnected()) {
     try {
       const doc = await Account.create({
+        id, // ⭐ required by schema
         username: payload.name,
         email: payload.email,
         password: payload.password,
         role: payload.role,
-        isVerified: payload.role === 'venue', // simple rule: venues start as verified
+        isVerified: payload.role === 'venue',
         preferences: payload.preferences || [],
         venueDetails: payload.venueDetails || null,
         createdAt: now,
@@ -67,9 +66,9 @@ export const createAccountService = async (payload) => {
     }
   }
 
-  // Fallback: mock data
+  // Fallback to mock data
   const newAccount = {
-    id: generateAccountId(),
+    id,
     username: payload.name,
     email: payload.email,
     password: payload.password,
@@ -87,7 +86,6 @@ export const createAccountService = async (payload) => {
 
 /**
  * Get an account by id.
- * Tries MongoDB first; falls back to mock if DB not available or query fails.
  * @async
  * @param {string} id
  * @returns {Promise<object|null>}
@@ -95,21 +93,20 @@ export const createAccountService = async (payload) => {
 export const getAccountByIdService = async (id) => {
   if (isDbConnected()) {
     try {
-      const doc = await Account.findById(id);
+      // Your schema uses `id` (string), not Mongo's _id
+      const doc = await Account.findOne({ id });
       return normalizeAccountDoc(doc);
     } catch (error) {
       console.error('getAccountByIdService: MongoDB error, falling back to mock:', error.message);
     }
   }
 
-  // Fallback: mock data
   const account = accounts.find((acc) => acc.id === id);
   return account || null;
 };
 
 /**
  * Update an account by id.
- * Tries MongoDB first; falls back to mock if DB not available or query fails.
  * @async
  * @param {string} id
  * @param {object} updates
@@ -120,8 +117,8 @@ export const updateAccountService = async (id, updates) => {
 
   if (isDbConnected()) {
     try {
-      const doc = await Account.findByIdAndUpdate(
-        id,
+      const doc = await Account.findOneAndUpdate(
+        { id },
         { ...updates, updatedAt: now },
         { new: true }
       );
@@ -132,7 +129,6 @@ export const updateAccountService = async (id, updates) => {
     }
   }
 
-  // Fallback: mock data
   const index = accounts.findIndex((acc) => acc.id === id);
   if (index === -1) return null;
 
@@ -148,7 +144,6 @@ export const updateAccountService = async (id, updates) => {
 
 /**
  * Delete an account by id.
- * Tries MongoDB first; falls back to mock if DB not available or query fails.
  * @async
  * @param {string} id
  * @returns {Promise<boolean>}
@@ -156,14 +151,13 @@ export const updateAccountService = async (id, updates) => {
 export const deleteAccountService = async (id) => {
   if (isDbConnected()) {
     try {
-      const result = await Account.findByIdAndDelete(id);
+      const result = await Account.findOneAndDelete({ id });
       return !!result;
     } catch (error) {
       console.error('deleteAccountService: MongoDB error, falling back to mock:', error.message);
     }
   }
 
-  // Fallback: mock data
   const index = accounts.findIndex((acc) => acc.id === id);
   if (index === -1) return false;
 
