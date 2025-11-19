@@ -2,6 +2,7 @@
 import request from 'supertest';
 import app from '../app.js';
 import { events } from '../data/events.js';
+import { eventLikes, resetEventLikes } from '../data/eventLikes.js';
 
 /**
  * Reset mock events before each test.
@@ -36,6 +37,12 @@ beforeEach(() => {
       isCancelled: false
     }
   );
+
+  resetEventLikes([
+    { userId: 'user-1', eventId: 1, likedAt: new Date(Date.now() - 1000) },
+    { userId: 'user-1', eventId: 2, likedAt: new Date(Date.now() - 500) },
+    { userId: 'user-2', eventId: 2, likedAt: new Date(Date.now() - 200) }
+  ]);
 });
 
 describe('Events API', () => {
@@ -85,6 +92,7 @@ describe('Events API', () => {
     expect(res.body.message).toBe('Event not found');
   });
 
+  
   test('POST /events creates a new event', async () => {
     const newEvent = {
       title: 'Art Gallery Opening',
@@ -108,6 +116,7 @@ describe('Events API', () => {
     expect(res.body.message).toBe('Event created successfully');
   });
 
+
   test('PUT /events/:id updates an existing event', async () => {
     const res = await request(app)
       .put('/events/1')
@@ -118,6 +127,47 @@ describe('Events API', () => {
     expect(res.body.data.title).toBe('Night Vibes Party – Updated');
     expect(res.body.message).toBe('Event updated successfully');
   });
+
+  test('PUT /events/:id updates multiple fields with validation', async () => {
+    const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const res = await request(app)
+      .put('/events/2')
+      .send({
+        title: 'Morning Yoga – Sunset Edition',
+        location: 'Thessaloniki',
+        dateTime: nextWeek,
+        isCancelled: true
+      });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.title).toBe('Morning Yoga – Sunset Edition');
+    expect(res.body.data.location).toBe('Thessaloniki');
+    expect(new Date(res.body.data.dateTime).toISOString()).toBe(new Date(nextWeek).toISOString());
+    expect(res.body.data.isCancelled).toBe(true);
+  });
+
+  test('PUT /events/:id rejects payload without editable fields', async () => {
+    const res = await request(app)
+      .put('/events/1')
+      .send({ creatorId: 'venue-2' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/cannot be updated|Provide at least one editable field/i);
+  });
+
+  test('PUT /events/:id validates malformed dateTime', async () => {
+    const res = await request(app)
+      .put('/events/1')
+      .send({ dateTime: 'not-a-date' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/dateTime must be a valid ISO date string/i);
+  });
+
 
   test('DELETE /events/:id removes an event', async () => {
     const res = await request(app).delete('/events/1');

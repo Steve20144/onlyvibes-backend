@@ -5,7 +5,8 @@ import {
   getEventById,
   createEvent,
   updateEvent,
-  deleteEvent
+  deleteEvent,
+  listLikedEvents
 } from '../controllers/eventController.js';
 
 const router = Router();
@@ -24,5 +25,8 @@ router.put('/:id', updateEvent);
 
 // DELETE /events/:id - delete an event
 router.delete('/:id', deleteEvent);
+
+// GET /events/liked/:userId - list liked events for user
+router.get('/liked/:userId', listLikedEvents);
 
 export default router;

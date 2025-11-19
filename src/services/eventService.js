@@ -2,6 +2,7 @@
 import mongoose from 'mongoose';
 import Event from '../models/Event.js'; // <- adjust if your model path/name is different
 import { events, getNextEventId } from '../data/events.js';
+import { eventLikes } from '../data/eventLikes.js';
 
 /**
  * Check if MongoDB is connected.
@@ -200,4 +201,33 @@ export const deleteEventService = async (eventId) => {
 
   events.splice(index, 1);
   return true;
+};
+
+/**
+ * Get events liked by a specific user (most recent first).
+ * @param {string} userId
+ * @returns {Promise<object[]>}
+ */
+export const getLikedEventsByUserService = async (userId) => {
+  if (!userId) return [];
+
+  const likesForUser = eventLikes
+    .filter((like) => like.userId === userId)
+    .sort((a, b) => b.likedAt - a.likedAt);
+
+  return likesForUser
+    .map((like) => {
+      const event = events.find((e) => e.eventId === like.eventId);
+      if (!event) return null;
+      return {
+        eventId: event.eventId,
+        title: event.title,
+        category: event.category,
+        location: event.location,
+        dateTime: event.dateTime,
+        imageUrl: event.imageUrl,
+        likedAt: like.likedAt
+      };
+    })
+    .filter(Boolean);
 };
