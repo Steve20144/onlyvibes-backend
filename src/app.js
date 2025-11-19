@@ -6,7 +6,10 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import cors from 'cors';
 
 const app = express();
-app.use(cors()); 
+app.use(cors({
+  origin: '*', // Allows all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+}));
 /**
  * Global middleware
  */
