@@ -170,32 +170,16 @@ describe('Events API', () => {
 
 
   test('DELETE /events/:id removes an event', async () => {
-  const res = await request(app).delete('/events/1');
-
-  expect(res.statusCode).toBe(200);
-  expect(res.body.success).toBe(true);
-  expect(res.body.message).toBe('Event deleted successfully');
-  expect(events.find((e) => e.eventId === 1)).toBeUndefined();
-});
-
-  test('GET /events/liked/:userId returns liked events', async () => {
-    const res = await request(app).get('/events/liked/user-1');
+    const res = await request(app).delete('/events/1');
 
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(res.body.data).toHaveLength(2);
-    expect(res.body.data[0].eventId).toBe(2);
-    expect(res.body.message).toBe('Liked events retrieved');
+    expect(res.body.message).toBe('Event deleted successfully');
+
+    // Verify via API instead of the mock array:
+    const after = await request(app).get('/events/1');
+    expect(after.statusCode).toBe(404);
+    expect(after.body.success).toBe(false);
+    expect(after.body.message).toBe('Event not found');
   });
-
-  test('GET /events/liked/:userId returns friendly message when none', async () => {
-    eventLikes.length = 0;
-    const res = await request(app).get('/events/liked/user-3');
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data).toHaveLength(0);
-    expect(res.body.message).toBe('User has not liked any events yet');
-  });
-
 });

@@ -5,6 +5,7 @@ import { accounts } from '../data/accounts.js';
 
 /**
  * Reset mock accounts before each test.
+ * (Works when DB is not connected; harmless if DB is used instead.)
  */
 beforeEach(() => {
   accounts.length = 0; // clear
@@ -58,8 +59,8 @@ describe('Accounts API', () => {
     expect(res.body.data.role).toBe('user');
     expect(res.body.message).toBe('Account created successfully');
 
-    // ensure it was added to mock data
-    expect(accounts.find((a) => a.email === 'newuser@example.com')).toBeTruthy();
+    // No longer assert against underlying mock array;
+    // we stay storage-agnostic (Mongo or mock).
   });
 
   test('POST /accounts fails with invalid email', async () => {
@@ -106,12 +107,16 @@ describe('Accounts API', () => {
   });
 
   test('DELETE /accounts/:id removes an account', async () => {
-  const res = await request(app).delete('/accounts/user-1');
+    const res = await request(app).delete('/accounts/user-1');
 
-  expect(res.statusCode).toBe(200);
-  expect(res.body.success).toBe(true);
-  expect(res.body.message).toBe('Account deleted');
-  expect(accounts.find((a) => a.id === 'user-1')).toBeUndefined();
-});
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toBe('Account deleted');
 
+    // Instead of checking the mock array directly, verify via API:
+    const after = await request(app).get('/accounts/user-1');
+    expect(after.statusCode).toBe(404);
+    expect(after.body.success).toBe(false);
+    expect(after.body.message).toBe('Account not found');
+  });
 });
