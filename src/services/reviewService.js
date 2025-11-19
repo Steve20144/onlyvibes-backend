@@ -1,7 +1,7 @@
 // src/services/reviewService.js
 import mongoose from 'mongoose';
-import Review from '../models/Review.js';   // <- adjust path/name if needed
-import Event from '../models/Event.js';     // <- used when DB is available
+import Review from '../models/review.js';   // <- adjust path/name if needed
+import Event from '../models/event.js';     // <- used when DB is available
 
 import { reviews, getNextReviewId } from '../data/reviews.js';
 import { events } from '../data/events.js';

@@ -1,6 +1,6 @@
 // src/services/eventService.js
 import mongoose from 'mongoose';
-import Event from '../models/Event.js'; // <- adjust if your model path/name is different
+import Event from '../models/event.js'; // <- adjust if your model path/name is different
 import { events, getNextEventId } from '../data/events.js';
 import { eventLikes } from '../data/eventLikes.js';
 
