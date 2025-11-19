@@ -2,27 +2,63 @@
 import mongoose from 'mongoose';
 
 /**
- * Event schema.
+ * Event schema – only what the UI actually needs.
  */
-const eventSchema = new mongoose.Schema({
-  // no eventId
-  creatorId: {
-    type: String,
-    required: true
+const eventSchema = new mongoose.Schema(
+  {
+    // Set from auth (req.user.id), NOT from the form
+    creatorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Account',
+      required: true
+    },
+
+    title: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    description: {
+      type: String,
+      default: ''
+    },
+
+    // e.g. "Athens City Center Rooftop"
+    location: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    // Selected time & date from the UI
+    dateTime: {
+      type: Date,
+      required: true
+    },
+
+    // “Select Categories” → allow multiple categories
+    categories: {
+      type: [String],
+      required: true,
+      validate: {
+        validator: (v) => Array.isArray(v) && v.length > 0,
+        message: 'At least one category is required'
+      }
+    },
+
+    // From “Upload Photos” (optional)
+    imageUrl: {
+      type: String
+    }
   },
-  title: { type: String, required: true, trim: true },
-  description: String,
-  category: { type: String, required: true },
-  dateTime: { type: Date, required: true },
-  location: { type: String, required: true },
-  latitude: Number,
-  longitude: Number,
-  imageUrl: String,
-  isCancelled: { type: Boolean, default: false }
-});
+  {
+    timestamps: true // createdAt, updatedAt
+  }
+);
 
 const Event =
   mongoose.models.Event || mongoose.model('Event', eventSchema);
 
-export { Event };       // named
-export default Event; 
+export { Event };
+export default Event;
