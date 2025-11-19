@@ -53,4 +53,9 @@ const accountSchema = new mongoose.Schema({
   }
 });
 
-export const Account = mongoose.model('Account', accountSchema);
+// Avoid OverwriteModelError when tests reload things
+const Account =
+  mongoose.models.Account || mongoose.model('Account', accountSchema);
+
+export { Account };       // named
+export default Account;   // ⭐ default for `import Account from ...`
