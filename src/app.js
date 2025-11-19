@@ -3,9 +3,13 @@ import express from 'express';
 import accountRoutes from './routes/accountRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import cors from 'cors';
 
 const app = express();
-
+app.use(cors({
+  origin: '*', // Allows all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+}));
 /**
  * Global middleware
  */
