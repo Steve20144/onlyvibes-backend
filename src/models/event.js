@@ -38,7 +38,7 @@ const eventSchema = new mongoose.Schema(
     },
 
     // “Select Categories” → allow multiple categories
-    categories: {
+    category: {
       type: [String],
       required: true,
       validate: {
