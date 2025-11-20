@@ -9,10 +9,20 @@ import {
   getLikedEventsByUserService
 } from '../services/eventService.js';
 
+const logEventControllerDebug = (...args) => {
+  if (process.env.DEBUG_EVENTS === 'true' || process.env.DEBUG === 'true') {
+    console.log('[EVENT_CONTROLLER]', ...args);
+  }
+};
+
+const logEventControllerError = (...args) => {
+  console.error('[EVENT_CONTROLLER]', ...args);
+};
+
 const editableEventFields = new Set([
   'title',
   'description',
-  'categories',
+  'category',
   'dateTime',
   'location',
   'imageUrl'
@@ -73,28 +83,28 @@ const sanitizeEventUpdates = (payload = {}) => {
         sanitized.description = value ?? '';
         break;
       }
-      case 'categories': {
+      case 'category': {
         // Accept array of strings OR comma-separated string from the UI
-        let categories = value;
+        let category = value;
 
-        if (typeof categories === 'string') {
-          categories = categories
+        if (typeof category === 'string') {
+          category = category
             .split(',')
             .map((c) => c.trim())
             .filter(Boolean);
         }
 
         if (
-          !Array.isArray(categories) ||
-          categories.length === 0 ||
-          !categories.every((c) => typeof c === 'string' && c.length > 0)
+          !Array.isArray(category) ||
+          category.length === 0 ||
+          !category.every((c) => typeof c === 'string' && c.length > 0)
         ) {
           throw validationError(
-            'categories must be a non-empty array of strings.'
+            'category must be a non-empty array of strings.'
           );
         }
 
-        sanitized.categories = categories;
+        sanitized.category = category;
         break;
       }
       case 'dateTime': {
@@ -134,6 +144,8 @@ const sanitizeEventUpdates = (payload = {}) => {
     throw validationError('Provide at least one editable field to update.');
   }
 
+  logEventControllerDebug('sanitizeEventUpdates: sanitized payload', sanitized);
+
   return sanitized;
 };
 
@@ -142,8 +154,11 @@ const sanitizeEventUpdates = (payload = {}) => {
  */
 export const listEvents = async (req, res, next) => {
   try {
-    // still accept ?category=... and ?location=...
     const { category, location } = req.query;
+
+    logEventControllerDebug('listEvents: incoming request', {
+      query: req.query
+    });
 
     const events = await listEventsService({ category, location });
 
@@ -155,6 +170,11 @@ export const listEvents = async (req, res, next) => {
           : 'No events found.';
     }
 
+    logEventControllerDebug('listEvents: sending response', {
+      count: events.length,
+      message
+    });
+
     return res.status(200).json({
       success: true,
       data: events,
@@ -162,6 +182,7 @@ export const listEvents = async (req, res, next) => {
       message
     });
   } catch (error) {
+    logEventControllerError('listEvents FAILED', error);
     return next(error);
   }
 };
@@ -171,6 +192,10 @@ export const listEvents = async (req, res, next) => {
  */
 export const getEventById = async (req, res, next) => {
   try {
+    logEventControllerDebug('getEventById: incoming request', {
+      params: req.params
+    });
+
     const eventId = parseEventId(req.params.id);
 
     const event = await getEventByIdService(eventId);
@@ -180,6 +205,11 @@ export const getEventById = async (req, res, next) => {
       throw err;
     }
 
+    logEventControllerDebug('getEventById: event found', {
+      id: event.id,
+      title: event.title
+    });
+
     return res.status(200).json({
       success: true,
       data: event,
@@ -187,6 +217,7 @@ export const getEventById = async (req, res, next) => {
       message: 'Event retrieved'
     });
   } catch (error) {
+    logEventControllerError('getEventById FAILED', error);
     return next(error);
   }
 };
@@ -196,6 +227,10 @@ export const getEventById = async (req, res, next) => {
  */
 export const createEvent = async (req, res, next) => {
   try {
+    logEventControllerDebug('createEvent: incoming request', {
+      body: req.body
+    });
+
     // In production this should come from auth middleware: req.user.id
     const creatorId = req.user?.id || req.body.creatorId;
 
@@ -203,10 +238,14 @@ export const createEvent = async (req, res, next) => {
       throw validationError('A valid creatorId is required.');
     }
 
-    // Pass payload as a single object to the service
     const event = await createEventService({
       ...req.body,
       creatorId
+    });
+
+    logEventControllerDebug('createEvent: event created', {
+      id: event.id,
+      title: event.title
     });
 
     return res.status(201).json({
@@ -216,6 +255,7 @@ export const createEvent = async (req, res, next) => {
       message: 'Event created successfully'
     });
   } catch (error) {
+    logEventControllerError('createEvent FAILED', error);
     return next(error);
   }
 };
@@ -225,6 +265,11 @@ export const createEvent = async (req, res, next) => {
  */
 export const updateEvent = async (req, res, next) => {
   try {
+    logEventControllerDebug('updateEvent: incoming request', {
+      params: req.params,
+      body: req.body
+    });
+
     const eventId = parseEventId(req.params.id);
     const sanitizedUpdates = sanitizeEventUpdates(req.body);
 
@@ -235,6 +280,11 @@ export const updateEvent = async (req, res, next) => {
       throw err;
     }
 
+    logEventControllerDebug('updateEvent: event updated', {
+      id: updated.id,
+      title: updated.title
+    });
+
     return res.status(200).json({
       success: true,
       data: updated,
@@ -242,6 +292,7 @@ export const updateEvent = async (req, res, next) => {
       message: 'Event updated successfully'
     });
   } catch (error) {
+    logEventControllerError('updateEvent FAILED', error);
     return next(error);
   }
 };
@@ -251,6 +302,10 @@ export const updateEvent = async (req, res, next) => {
  */
 export const deleteEvent = async (req, res, next) => {
   try {
+    logEventControllerDebug('deleteEvent: incoming request', {
+      params: req.params
+    });
+
     const eventId = parseEventId(req.params.id);
 
     const deleted = await deleteEventService(eventId);
@@ -260,6 +315,10 @@ export const deleteEvent = async (req, res, next) => {
       throw err;
     }
 
+    logEventControllerDebug('deleteEvent: event deleted', {
+      id: eventId
+    });
+
     return res.status(200).json({
       success: true,
       data: null,
@@ -267,6 +326,7 @@ export const deleteEvent = async (req, res, next) => {
       message: 'Event deleted successfully'
     });
   } catch (error) {
+    logEventControllerError('deleteEvent FAILED', error);
     return next(error);
   }
 };
@@ -277,6 +337,10 @@ export const deleteEvent = async (req, res, next) => {
  */
 export const listLikedEvents = async (req, res, next) => {
   try {
+    logEventControllerDebug('listLikedEvents: incoming request', {
+      params: req.params
+    });
+
     const { userId } = req.params;
     if (!userId || typeof userId !== 'string') {
       throw validationError('userId parameter is required.');
@@ -284,16 +348,24 @@ export const listLikedEvents = async (req, res, next) => {
 
     const likedEvents = await getLikedEventsByUserService(userId.trim());
 
+    const message =
+      likedEvents.length === 0
+        ? 'User has not liked any events yet'
+        : 'Liked events retrieved';
+
+    logEventControllerDebug('listLikedEvents: sending response', {
+      count: likedEvents.length,
+      message
+    });
+
     return res.status(200).json({
       success: true,
       data: likedEvents,
       error: null,
-      message:
-        likedEvents.length === 0
-          ? 'User has not liked any events yet'
-          : 'Liked events retrieved'
+      message
     });
   } catch (error) {
+    logEventControllerError('listLikedEvents FAILED', error);
     return next(error);
   }
 };

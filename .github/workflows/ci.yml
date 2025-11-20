@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, render-endpoint-testing ]
   pull_request:
 
 jobs:
