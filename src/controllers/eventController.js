@@ -12,7 +12,7 @@ import {
 const editableEventFields = new Set([
   'title',
   'description',
-  'categories',
+  'category',
   'dateTime',
   'location',
   'imageUrl'
@@ -73,28 +73,28 @@ const sanitizeEventUpdates = (payload = {}) => {
         sanitized.description = value ?? '';
         break;
       }
-      case 'categories': {
+      case 'category': {
         // Accept array of strings OR comma-separated string from the UI
-        let categories = value;
+        let category = value;
 
-        if (typeof categories === 'string') {
-          categories = categories
+        if (typeof category === 'string') {
+          category = category
             .split(',')
             .map((c) => c.trim())
             .filter(Boolean);
         }
 
         if (
-          !Array.isArray(categories) ||
-          categories.length === 0 ||
-          !categories.every((c) => typeof c === 'string' && c.length > 0)
+          !Array.isArray(category) ||
+          category.length === 0 ||
+          !category.every((c) => typeof c === 'string' && c.length > 0)
         ) {
           throw validationError(
-            'categories must be a non-empty array of strings.'
+            'category must be a non-empty array of strings.'
           );
         }
 
-        sanitized.categories = categories;
+        sanitized.category = category;
         break;
       }
       case 'dateTime': {

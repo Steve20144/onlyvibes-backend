@@ -45,8 +45,8 @@ export const listEventsService = async (filters = {}) => {
   const query = {};
 
   if (category) {
-    // Match events where `categories` array contains this category
-    query.categories = category;
+    // Match events where `category` array contains this category
+    query.category = category;
   }
 
   if (location) {
@@ -83,7 +83,7 @@ export const getEventByIdService = async (id) => {
  *   description?: string,
  *   location: string,
  *   dateTime: string | Date,
- *   categories: string[] | string,
+ *   category: string[] | string,
  *   imageUrl?: string
  * }} payload
  * @returns {Promise<object>}
@@ -94,10 +94,10 @@ export const createEventService = async (payload) => {
     throw new Error('Database not available');
   }
 
-  let categories = payload.categories;
+  let category = payload.category;
 
-  if (typeof categories === 'string') {
-    categories = categories
+  if (typeof category === 'string') {
+    category = category
       .split(',')
       .map((c) => c.trim())
       .filter(Boolean);
@@ -109,7 +109,7 @@ export const createEventService = async (payload) => {
     description: payload.description || '',
     location: payload.location,
     dateTime: new Date(payload.dateTime),
-    categories,
+    category,
     imageUrl: payload.imageUrl || undefined
   };
 
@@ -136,9 +136,9 @@ export const updateEventService = async (id, updates) => {
     updatesWithDate.dateTime = new Date(updates.dateTime);
   }
 
-  // If categories comes as a comma-separated string, normalize it
-  if (typeof updatesWithDate.categories === 'string') {
-    updatesWithDate.categories = updatesWithDate.categories
+  // If category comes as a comma-separated string, normalize it
+  if (typeof updatesWithDate.category === 'string') {
+    updatesWithDate.category = updatesWithDate.category
       .split(',')
       .map((c) => c.trim())
       .filter(Boolean);
