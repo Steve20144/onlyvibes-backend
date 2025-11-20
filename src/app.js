@@ -1,21 +1,48 @@
 // src/app.js
 import express from 'express';
+import cors from 'cors';
+
 import accountRoutes from './routes/accountRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
-import cors from 'cors';
+import { logRequest } from './utils/logger.js';
 
 const app = express();
+
 app.use(cors({
-  origin: '*', // Allows all origins
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 }));
+
 /**
  * Global middleware
  */
-// Parse JSON & URL-encoded bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+/**
+ * 🔍 Custom request logging middleware (Option #2)
+ */
+app.use((req, res, next) => {
+  const start = Date.now();
+
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+
+    // Mask password if present
+    const safeBody = { ...req.body };
+    if (safeBody.password) safeBody.password = '***';
+
+    // Log request details
+    logRequest(
+      `${req.method} ${req.originalUrl} → ${res.statusCode} (${duration}ms)
+      query: ${JSON.stringify(req.query)}
+      body: ${JSON.stringify(safeBody)}`
+    );
+  });
+
+  next();
+});
 
 /**
  * Health check
@@ -50,13 +77,10 @@ app.use((req, res, next) => {
 
 /**
  * Centralized error handler
- * (any controller calling next(err) will end up here)
  */
 app.use((err, req, res, next) => {
-  // Explicit statusCode if provided, otherwise 500
   const statusCode = err.statusCode || 500;
 
-  // Simple differentiation example
   if (statusCode === 400 || err.name === 'ValidationError') {
     return res.status(400).json({
       success: false,
