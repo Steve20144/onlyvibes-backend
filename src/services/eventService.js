@@ -2,6 +2,16 @@
 import mongoose from 'mongoose';
 import Event from '../models/event.js';
 
+const logEventServiceDebug = (...args) => {
+  if (process.env.DEBUG_EVENTS === 'true' || process.env.DEBUG === 'true') {
+    console.log('[EVENT_SERVICE]', ...args);
+  }
+};
+
+const logEventServiceError = (...args) => {
+  console.error('[EVENT_SERVICE]', ...args);
+};
+
 /**
  * Check if MongoDB is connected.
  * @returns {boolean}
@@ -62,24 +72,35 @@ export const listEventsService = async (filters = {}) => {
   const { category, location } = filters;
 
   if (!isDbConnected()) {
-    console.warn('listEventsService: MongoDB not connected.');
+    logEventServiceDebug('listEventsService: MongoDB not connected.', { filters });
     return [];
   }
 
-  const query = {};
+  try {
+    const query = {};
 
-  if (category) {
-    // Match events where `category` array contains this category
-    query.category = category;
+    if (category) {
+      // Match events where `category` array contains this category
+      query.category = category;
+    }
+
+    if (location) {
+      // Case-insensitive substring match on location
+      query.location = new RegExp(location, 'i');
+    }
+
+    logEventServiceDebug('listEventsService: querying events', { query });
+
+    const docs = await Event.find(query).sort({ dateTime: 1 });
+    const result = docs.map(normalizeEventDoc);
+
+    logEventServiceDebug('listEventsService: result count', { count: result.length });
+
+    return result;
+  } catch (err) {
+    logEventServiceError('listEventsService FAILED', err);
+    throw err;
   }
-
-  if (location) {
-    // Case-insensitive substring match on location
-    query.location = new RegExp(location, 'i');
-  }
-
-  const docs = await Event.find(query).sort({ dateTime: 1 });
-  return docs.map(normalizeEventDoc);
 };
 
 /**
@@ -90,12 +111,24 @@ export const listEventsService = async (filters = {}) => {
  */
 export const getEventByIdService = async (id) => {
   if (!isDbConnected()) {
-    console.warn('getEventByIdService: MongoDB not connected.');
+    logEventServiceDebug('getEventByIdService: MongoDB not connected.', { id });
     return null;
   }
 
-  const doc = await Event.findById(id);
-  return normalizeEventDoc(doc);
+  try {
+    logEventServiceDebug('getEventByIdService: fetching event', { id });
+    const doc = await Event.findById(id);
+    const normalized = normalizeEventDoc(doc);
+
+    if (!normalized) {
+      logEventServiceDebug('getEventByIdService: event not found', { id });
+    }
+
+    return normalized;
+  } catch (err) {
+    logEventServiceError('getEventByIdService FAILED', err);
+    throw err;
+  }
 };
 
 /**
@@ -114,24 +147,43 @@ export const getEventByIdService = async (id) => {
  */
 export const createEventService = async (payload) => {
   if (!isDbConnected()) {
-    console.warn('createEventService: MongoDB not connected.');
+    logEventServiceError('createEventService: MongoDB not connected.');
     throw new Error('Database not available');
   }
 
-  const category = normalizeCategoryInput(payload);
+  try {
+    const category = normalizeCategoryInput(payload);
 
-  const baseData = {
-    creatorId: payload.creatorId,
-    title: payload.title,
-    description: payload.description || '',
-    location: payload.location,
-    dateTime: new Date(payload.dateTime),
-    category,
-    imageUrl: payload.imageUrl || undefined
-  };
+    const baseData = {
+      creatorId: payload.creatorId,
+      title: payload.title,
+      description: payload.description || '',
+      location: payload.location,
+      dateTime: new Date(payload.dateTime),
+      category,
+      imageUrl: payload.imageUrl || undefined
+    };
 
-  const doc = await Event.create(baseData);
-  return normalizeEventDoc(doc);
+    logEventServiceDebug('createEventService: creating event', {
+      creatorId: baseData.creatorId?.toString?.() || baseData.creatorId,
+      title: baseData.title,
+      location: baseData.location,
+      category: baseData.category
+    });
+
+    const doc = await Event.create(baseData);
+    const normalized = normalizeEventDoc(doc);
+
+    logEventServiceDebug('createEventService: event created', {
+      id: normalized?.id,
+      title: normalized?.title
+    });
+
+    return normalized;
+  } catch (err) {
+    logEventServiceError('createEventService FAILED', err);
+    throw err;
+  }
 };
 
 /**
@@ -143,27 +195,48 @@ export const createEventService = async (payload) => {
  */
 export const updateEventService = async (id, updates) => {
   if (!isDbConnected()) {
-    console.warn('updateEventService: MongoDB not connected.');
+    logEventServiceDebug('updateEventService: MongoDB not connected.', { id });
     return null;
   }
 
-  const updatesWithDate = { ...updates };
+  try {
+    const updatesWithDate = { ...updates };
 
-  if (updates.dateTime) {
-    updatesWithDate.dateTime = new Date(updates.dateTime);
+    if (updates.dateTime) {
+      updatesWithDate.dateTime = new Date(updates.dateTime);
+    }
+
+    // Normalize category/category-style fields if present
+    if (updates.category !== undefined || updates.categories !== undefined) {
+      updatesWithDate.category = normalizeCategoryInput(updates);
+      delete updatesWithDate.categories;
+    }
+
+    logEventServiceDebug('updateEventService: updating event', {
+      id,
+      updates: updatesWithDate
+    });
+
+    const doc = await Event.findByIdAndUpdate(id, updatesWithDate, {
+      new: true
+    });
+
+    const normalized = normalizeEventDoc(doc);
+
+    if (!normalized) {
+      logEventServiceDebug('updateEventService: event not found', { id });
+    } else {
+      logEventServiceDebug('updateEventService: event updated', {
+        id: normalized.id,
+        title: normalized.title
+      });
+    }
+
+    return normalized;
+  } catch (err) {
+    logEventServiceError('updateEventService FAILED', err);
+    throw err;
   }
-
-  // Normalize category/category-style fields if present
-  if (updates.category !== undefined || updates.categories !== undefined) {
-    updatesWithDate.category = normalizeCategoryInput(updates);
-    delete updatesWithDate.categories;
-  }
-
-  const doc = await Event.findByIdAndUpdate(id, updatesWithDate, {
-    new: true
-  });
-
-  return normalizeEventDoc(doc);
 };
 
 /**
@@ -174,12 +247,22 @@ export const updateEventService = async (id, updates) => {
  */
 export const deleteEventService = async (id) => {
   if (!isDbConnected()) {
-    console.warn('deleteEventService: MongoDB not connected.');
+    logEventServiceDebug('deleteEventService: MongoDB not connected.', { id });
     return false;
   }
 
-  const result = await Event.findByIdAndDelete(id);
-  return !!result;
+  try {
+    logEventServiceDebug('deleteEventService: deleting event', { id });
+    const result = await Event.findByIdAndDelete(id);
+    const success = !!result;
+
+    logEventServiceDebug('deleteEventService: delete result', { id, success });
+
+    return success;
+  } catch (err) {
+    logEventServiceError('deleteEventService FAILED', err);
+    throw err;
+  }
 };
 
 /**
@@ -190,9 +273,10 @@ export const deleteEventService = async (id) => {
  */
 export const getLikedEventsByUserService = async (userId) => {
   if (!userId) return [];
-  // TODO: implement with a Like model or similar.
-  console.warn(
-    'getLikedEventsByUserService: not implemented yet – returning empty list.'
+  logEventServiceDebug(
+    'getLikedEventsByUserService: called but not implemented',
+    { userId }
   );
+  // TODO: implement with a Like model or similar.
   return [];
 };

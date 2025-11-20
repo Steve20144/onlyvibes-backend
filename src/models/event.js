@@ -1,6 +1,16 @@
 // src/models/event.js
 import mongoose from 'mongoose';
 
+const logEventModelDebug = (...args) => {
+  if (process.env.DEBUG_EVENTS === 'true' || process.env.DEBUG === 'true') {
+    console.log('[EVENT_MODEL]', ...args);
+  }
+};
+
+const logEventModelError = (...args) => {
+  console.error('[EVENT_MODEL]', ...args);
+};
+
 /**
  * Event schema – only what the UI actually needs.
  */
@@ -40,7 +50,6 @@ const eventSchema = new mongoose.Schema(
     /**
      * “Select Categories” → allow multiple categories.
      * Yes, it's called `category` and it's an array.
-     * No, we’re not renaming it to `categories` for the 5th time.
      */
     category: {
       type: [String],
@@ -60,6 +69,29 @@ const eventSchema = new mongoose.Schema(
     timestamps: true // createdAt, updatedAt
   }
 );
+
+// Debug hooks
+eventSchema.post('save', function (doc) {
+  logEventModelDebug('Event saved', { id: doc._id?.toString(), title: doc.title });
+});
+
+eventSchema.post('findOneAndUpdate', function (doc) {
+  if (!doc) return;
+  logEventModelDebug('Event updated', { id: doc._id?.toString(), title: doc.title });
+});
+
+eventSchema.post('findOneAndDelete', function (doc) {
+  if (!doc) return;
+  logEventModelDebug('Event deleted', { id: doc._id?.toString(), title: doc.title });
+});
+
+// Error hook
+eventSchema.post('save', function (error, doc, next) {
+  if (error) {
+    logEventModelError('Error during save', error);
+  }
+  next(error);
+});
 
 const Event =
   mongoose.models.Event || mongoose.model('Event', eventSchema);
