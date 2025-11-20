@@ -37,7 +37,11 @@ const eventSchema = new mongoose.Schema(
       required: true
     },
 
-    // “Select Categories” → allow multiple categories
+    /**
+     * “Select Categories” → allow multiple categories.
+     * Yes, it's called `category` and it's an array.
+     * No, we’re not renaming it to `categories` for the 5th time.
+     */
     category: {
       type: [String],
       required: true,

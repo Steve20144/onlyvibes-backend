@@ -203,7 +203,6 @@ export const createEvent = async (req, res, next) => {
       throw validationError('A valid creatorId is required.');
     }
 
-    // Pass payload as a single object to the service
     const event = await createEventService({
       ...req.body,
       creatorId

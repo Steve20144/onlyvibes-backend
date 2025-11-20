@@ -28,6 +28,31 @@ const normalizeEventDoc = (doc) => {
 };
 
 /**
+ * Helper: normalize category/category-style payloads
+ * Accepts:
+ *  - category: "Music"
+ *  - category: ["Music", "Techno"]
+ *  - categories: "Music,Techno"
+ *  - categories: ["Music", "Techno"]
+ */
+const normalizeCategoryInput = (payload) => {
+  let category = payload.category ?? payload.categories;
+
+  if (typeof category === 'string') {
+    category = category
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean);
+  } else if (Array.isArray(category)) {
+    category = category
+      .map((c) => (typeof c === 'string' ? c.trim() : c))
+      .filter(Boolean);
+  }
+
+  return category;
+};
+
+/**
  * List events with optional filters.
  * @async
  * @param {{category?:string,location?:string}} filters
@@ -37,7 +62,6 @@ export const listEventsService = async (filters = {}) => {
   const { category, location } = filters;
 
   if (!isDbConnected()) {
-    // If you want, you can throw here or handle differently
     console.warn('listEventsService: MongoDB not connected.');
     return [];
   }
@@ -77,15 +101,15 @@ export const getEventByIdService = async (id) => {
 /**
  * Create a new event.
  * @async
- * @param {{
- *   creatorId: string,
- *   title: string,
- *   description?: string,
- *   location: string,
- *   dateTime: string | Date,
- *   category: string[] | string,
- *   imageUrl?: string
- * }} payload
+ * @param {object} payload
+ * @param {string} payload.creatorId
+ * @param {string} payload.title
+ * @param {string} [payload.description]
+ * @param {string} payload.location
+ * @param {string|Date} payload.dateTime
+ * @param {string|string[]} [payload.category]
+ * @param {string|string[]} [payload.categories] // legacy / frontend confusion
+ * @param {string} [payload.imageUrl]
  * @returns {Promise<object>}
  */
 export const createEventService = async (payload) => {
@@ -94,14 +118,7 @@ export const createEventService = async (payload) => {
     throw new Error('Database not available');
   }
 
-  let category = payload.category;
-
-  if (typeof category === 'string') {
-    category = category
-      .split(',')
-      .map((c) => c.trim())
-      .filter(Boolean);
-  }
+  const category = normalizeCategoryInput(payload);
 
   const baseData = {
     creatorId: payload.creatorId,
@@ -136,12 +153,10 @@ export const updateEventService = async (id, updates) => {
     updatesWithDate.dateTime = new Date(updates.dateTime);
   }
 
-  // If category comes as a comma-separated string, normalize it
-  if (typeof updatesWithDate.category === 'string') {
-    updatesWithDate.category = updatesWithDate.category
-      .split(',')
-      .map((c) => c.trim())
-      .filter(Boolean);
+  // Normalize category/category-style fields if present
+  if (updates.category !== undefined || updates.categories !== undefined) {
+    updatesWithDate.category = normalizeCategoryInput(updates);
+    delete updatesWithDate.categories;
   }
 
   const doc = await Event.findByIdAndUpdate(id, updatesWithDate, {
