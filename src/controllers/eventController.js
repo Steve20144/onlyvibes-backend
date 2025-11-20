@@ -1,4 +1,5 @@
 // src/controllers/eventController.js
+import mongoose from 'mongoose';
 import {
   listEventsService,
   getEventByIdService,
@@ -11,13 +12,10 @@ import {
 const editableEventFields = new Set([
   'title',
   'description',
-  'category',
+  'categories',
   'dateTime',
   'location',
-  'latitude',
-  'longitude',
-  'imageUrl',
-  'isCancelled'
+  'imageUrl'
 ]);
 
 const validationError = (message) => {
@@ -26,12 +24,17 @@ const validationError = (message) => {
   return err;
 };
 
+const isValidObjectId = (value) =>
+  typeof value === 'string' && mongoose.Types.ObjectId.isValid(value);
+
+/**
+ * Validate and return a Mongo ObjectId string.
+ */
 const parseEventId = (value) => {
-  const eventId = Number(value);
-  if (Number.isNaN(eventId)) {
+  if (!isValidObjectId(value)) {
     throw validationError('Invalid event id');
   }
-  return eventId;
+  return value;
 };
 
 const sanitizeEventUpdates = (payload = {}) => {
@@ -52,23 +55,46 @@ const sanitizeEventUpdates = (payload = {}) => {
     switch (key) {
       case 'title': {
         if (typeof value !== 'string' || value.trim().length < 3) {
-          throw validationError('Title must be a string with at least 3 characters.');
+          throw validationError(
+            'Title must be a string with at least 3 characters.'
+          );
         }
         sanitized.title = value.trim();
         break;
       }
       case 'description': {
-        if (value !== undefined && value !== null && typeof value !== 'string') {
+        if (
+          value !== undefined &&
+          value !== null &&
+          typeof value !== 'string'
+        ) {
           throw validationError('Description must be a string.');
         }
         sanitized.description = value ?? '';
         break;
       }
-      case 'category': {
-        if (typeof value !== 'string' || value.trim().length === 0) {
-          throw validationError('Category must be a non-empty string.');
+      case 'categories': {
+        // Accept array of strings OR comma-separated string from the UI
+        let categories = value;
+
+        if (typeof categories === 'string') {
+          categories = categories
+            .split(',')
+            .map((c) => c.trim())
+            .filter(Boolean);
         }
-        sanitized.category = value.trim();
+
+        if (
+          !Array.isArray(categories) ||
+          categories.length === 0 ||
+          !categories.every((c) => typeof c === 'string' && c.length > 0)
+        ) {
+          throw validationError(
+            'categories must be a non-empty array of strings.'
+          );
+        }
+
+        sanitized.categories = categories;
         break;
       }
       case 'dateTime': {
@@ -81,36 +107,22 @@ const sanitizeEventUpdates = (payload = {}) => {
       }
       case 'location': {
         if (typeof value !== 'string' || value.trim().length < 2) {
-          throw validationError('Location must be a string with at least 2 characters.');
+          throw validationError(
+            'Location must be a string with at least 2 characters.'
+          );
         }
         sanitized.location = value.trim();
         break;
       }
-      case 'latitude':
-      case 'longitude': {
-        if (value === null || value === undefined || value === '') {
-          sanitized[key] = null;
-          break;
-        }
-        const num = Number(value);
-        if (Number.isNaN(num)) {
-          throw validationError(`${key} must be a number.`);
-        }
-        sanitized[key] = num;
-        break;
-      }
       case 'imageUrl': {
-        if (value !== undefined && value !== null && typeof value !== 'string') {
+        if (
+          value !== undefined &&
+          value !== null &&
+          typeof value !== 'string'
+        ) {
           throw validationError('imageUrl must be a string.');
         }
         sanitized.imageUrl = value ?? null;
-        break;
-      }
-      case 'isCancelled': {
-        if (typeof value !== 'boolean') {
-          throw validationError('isCancelled must be a boolean.');
-        }
-        sanitized.isCancelled = value;
         break;
       }
       default:
@@ -130,6 +142,7 @@ const sanitizeEventUpdates = (payload = {}) => {
  */
 export const listEvents = async (req, res, next) => {
   try {
+    // still accept ?category=... and ?location=...
     const { category, location } = req.query;
 
     const events = await listEventsService({ category, location });
@@ -183,8 +196,18 @@ export const getEventById = async (req, res, next) => {
  */
 export const createEvent = async (req, res, next) => {
   try {
-    const creatorId = req.body.creatorId || 'venue-1';
-    const event = await createEventService(creatorId, req.body);
+    // In production this should come from auth middleware: req.user.id
+    const creatorId = req.user?.id || req.body.creatorId;
+
+    if (!creatorId || !isValidObjectId(creatorId)) {
+      throw validationError('A valid creatorId is required.');
+    }
+
+    // Pass payload as a single object to the service
+    const event = await createEventService({
+      ...req.body,
+      creatorId
+    });
 
     return res.status(201).json({
       success: true,
@@ -225,7 +248,6 @@ export const updateEvent = async (req, res, next) => {
 
 /**
  * Delete an event by id.
- * (Use 200 so we can send {success, data, error, message})
  */
 export const deleteEvent = async (req, res, next) => {
   try {
@@ -251,6 +273,7 @@ export const deleteEvent = async (req, res, next) => {
 
 /**
  * GET /events/liked/:userId - list events liked by a user
+ * (placeholder implementation – depends on how you model likes)
  */
 export const listLikedEvents = async (req, res, next) => {
   try {
