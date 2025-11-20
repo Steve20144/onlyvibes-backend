@@ -14,6 +14,9 @@ const router = Router();
 // GET /events - list / filter events
 router.get('/', listEvents);
 
+// GET /events/liked/:userId - list liked events for user
+router.get('/liked/:userId', listLikedEvents);
+
 // GET /events/:id - get a single event
 router.get('/:id', getEventById);
 
@@ -26,7 +29,5 @@ router.put('/:id', updateEvent);
 // DELETE /events/:id - delete an event
 router.delete('/:id', deleteEvent);
 
-// GET /events/liked/:userId - list liked events for user
-router.get('/liked/:userId', listLikedEvents);
 
 export default router;
