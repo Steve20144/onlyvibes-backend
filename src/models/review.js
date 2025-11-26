@@ -12,7 +12,7 @@ const reviewSchema = new mongoose.Schema(
       required: true,
       index: true
     },
-    userId: {
+    accountId: {
       type: String,
       required: true,
       trim: true

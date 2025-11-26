@@ -6,7 +6,7 @@ import {
   createReview,
   updateReview,
   deleteReview,
-  listReviewedEventsForUser
+  listReviewedEventsForAccount
 } from '../controllers/reviewController.js';
 
 const router = Router();
@@ -18,7 +18,7 @@ router.post('/events/:eventId/reviews', createReview);
 router.put('/events/:eventId/reviews/:reviewId', updateReview);
 router.delete('/events/:eventId/reviews/:reviewId', deleteReview);
 
-// Reviewed events by user
-router.get('/users/:userId/reviewed-events', listReviewedEventsForUser);
+// Reviewed events by account
+router.get('/accounts/:accountId/reviewed-events', listReviewedEventsForAccount);
 
 export default router;

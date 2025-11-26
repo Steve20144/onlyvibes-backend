@@ -3,11 +3,11 @@ import mongoose from 'mongoose';
 import {
   getReviewsByEventIdService,
   getReviewByIdService,
-  getReviewByEventAndUserService,
+  getReviewByEventAndAccountService,
   createReviewService,
   updateReviewService,
   deleteReviewService,
-  getReviewedEventsByUserService,
+  getReviewedEventsByAccountService,
   ensureEventExistsService
 } from '../services/reviewService.js';
 
@@ -97,27 +97,30 @@ export const getReview = async (req, res, next) => {
 export const createReview = async (req, res, next) => {
   try {
     const eventId = parseObjectId(req.params.eventId, 'event id');
-    const { userId, rating, comment, mediaUrls } = req.body;
+    const { accountId, rating, comment, mediaUrls } = req.body;
 
     await assertEventExists(eventId);
 
-    if (!userId || typeof userId !== 'string') {
-      const err = new Error('A valid userId is required');
+    if (!accountId || typeof accountId !== 'string') {
+      const err = new Error('A valid accountId is required');
       err.statusCode = 400;
       throw err;
     }
 
     validateRating(Number(rating));
 
-    const existingReview = await getReviewByEventAndUserService(eventId, userId);
+    const existingReview = await getReviewByEventAndAccountService(
+      eventId,
+      accountId
+    );
     if (existingReview) {
-      const err = new Error('Review already exists for this event and user');
+      const err = new Error('Review already exists for this event and account');
       err.statusCode = 409;
       throw err;
     }
 
     const review = await createReviewService(eventId, {
-      userId,
+      accountId,
       rating: Number(rating),
       comment,
       mediaUrls
@@ -201,18 +204,18 @@ export const deleteReview = async (req, res, next) => {
 };
 
 /**
- * GET /users/:userId/reviewed-events
+ * GET /accounts/:accountId/reviewed-events
  */
-export const listReviewedEventsForUser = async (req, res, next) => {
+export const listReviewedEventsForAccount = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    if (!userId) {
-      const err = new Error('userId parameter is required');
+    const { accountId } = req.params;
+    if (!accountId) {
+      const err = new Error('accountId parameter is required');
       err.statusCode = 400;
       throw err;
     }
 
-    const reviewedEvents = await getReviewedEventsByUserService(userId);
+    const reviewedEvents = await getReviewedEventsByAccountService(accountId);
 
     return res.status(200).json({
       success: true,

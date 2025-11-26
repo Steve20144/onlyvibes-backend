@@ -42,9 +42,9 @@ export const getReviewByIdService = async (eventId, reviewId) => {
   return normalizeReviewDoc(doc);
 };
 
-export const getReviewByEventAndUserService = async (eventId, userId) => {
+export const getReviewByEventAndAccountService = async (eventId, accountId) => {
   if (!isDbConnected()) return null;
-  const doc = await Review.findOne({ eventId, userId });
+  const doc = await Review.findOne({ eventId, accountId });
   return normalizeReviewDoc(doc);
 };
 
@@ -55,7 +55,7 @@ export const createReviewService = async (eventId, payload) => {
 
   const doc = await Review.create({
     eventId,
-    userId: payload.userId,
+    accountId: payload.accountId,
     rating: payload.rating,
     comment: payload.comment || '',
     mediaUrls: Array.isArray(payload.mediaUrls) ? payload.mediaUrls : []
@@ -94,10 +94,10 @@ export const deleteReviewService = async (eventId, reviewId) => {
   return !!doc;
 };
 
-export const getReviewedEventsByUserService = async (userId) => {
+export const getReviewedEventsByAccountService = async (accountId) => {
   if (!isDbConnected()) return [];
 
-  const reviewDocs = await Review.find({ userId }).sort({ updatedAt: -1 });
+  const reviewDocs = await Review.find({ accountId }).sort({ updatedAt: -1 });
   if (!reviewDocs.length) return [];
 
   const reviews = reviewDocs.map(normalizeReviewDoc);
@@ -133,6 +133,7 @@ export const getReviewedEventsByUserService = async (userId) => {
       location: event?.location || 'Unknown location',
       totalReviews: list.length,
       averageRating: Number((totalRating / list.length).toFixed(1)),
+      reviewId: lastReview.id,
       lastReviewedAt: lastReview.updatedAt,
       lastComment: lastReview.comment
     });

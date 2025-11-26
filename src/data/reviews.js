@@ -4,7 +4,7 @@ export const reviews = [
   {
     reviewId: 1,
     eventId: 1,
-    userId: 'user-1',
+    accountId: 'user-1',
     rating: 5,
     comment: 'Incredible vibes and flawless production.',
     mediaUrls: ['https://example.com/reviews/1/photo.jpg'],
@@ -14,7 +14,7 @@ export const reviews = [
   {
     reviewId: 2,
     eventId: 2,
-    userId: 'user-2',
+    accountId: 'user-2',
     rating: 4,
     comment: 'Great instructors, but started a little late.',
     mediaUrls: [],

@@ -51,14 +51,14 @@ beforeEach(async () => {
   await Review.create([
     {
       eventId: eventA._id,
-      userId: 'user-1',
+      accountId: 'user-1',
       rating: 5,
       comment: 'Amazing energy!',
       mediaUrls: []
     },
     {
       eventId: eventB._id,
-      userId: 'user-2',
+      accountId: 'user-2',
       rating: 4,
       comment: 'Peaceful morning session.',
       mediaUrls: ['https://example.com/reviews/2/photo.jpg']
@@ -86,7 +86,7 @@ describe('Reviews API', () => {
     const res = await request(app)
       .post(`/events/${eventA._id}/reviews`)
       .send({
-        userId: 'user-3',
+        accountId: 'user-3',
         rating: 4,
         comment: 'Solid show',
         mediaUrls: []
@@ -102,7 +102,7 @@ describe('Reviews API', () => {
     const res = await request(app)
       .post(`/events/${eventA._id}/reviews`)
       .send({
-        userId: 'user-1',
+        accountId: 'user-1',
         rating: 5,
         comment: 'Another try'
       });
@@ -110,7 +110,7 @@ describe('Reviews API', () => {
     expect(res.statusCode).toBe(409);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toBe(
-      'Review already exists for this event and user'
+      'Review already exists for this event and account'
     );
   });
 
@@ -155,20 +155,21 @@ describe('Reviews API', () => {
     expect(after.body.data).toHaveLength(0);
   });
 
-  test('GET /users/:userId/reviewed-events returns summary', async () => {
-    await Review.create({
+  test('GET /accounts/:accountId/reviewed-events returns summary', async () => {
+    const latestReview = await Review.create({
       eventId: eventA._id,
-      userId: 'user-1',
+      accountId: 'user-1',
       rating: 4,
       comment: 'Second visit'
     });
 
-    const res = await request(app).get('/users/user-1/reviewed-events');
+    const res = await request(app).get('/accounts/user-1/reviewed-events');
 
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data).toHaveLength(1);
     expect(res.body.data[0].eventTitle).toBe('Night Vibes Party');
     expect(res.body.data[0].totalReviews).toBe(2);
+    expect(res.body.data[0].reviewId).toBe(latestReview._id.toString());
   });
 });
