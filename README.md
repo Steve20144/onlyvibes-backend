@@ -82,8 +82,6 @@ If you used the Swagger-style nesting:
 | ---------- | ------------------------------------ | --------------- |
 | **DELETE** | `/events/:eventId/reviews/:reviewId` | Delete a review |
 
-> If you want me to rewrite the README to include every review route exactly, just paste `reviewRoutes.js`.
-
 ---
 
 # 📁 **Project Structure**
