@@ -2,48 +2,43 @@
 import mongoose from 'mongoose';
 
 /**
- * Review schema capturing event ratings and optional media.
+ * Review schema aligned with Mongo ObjectId usage (similar to Event/Account models).
  */
-const reviewSchema = new mongoose.Schema({
-  reviewId: {
-    type: Number,
-    required: true,
-    unique: true
+const reviewSchema = new mongoose.Schema(
+  {
+    eventId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Event',
+      required: true,
+      index: true
+    },
+    userId: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+      required: true
+    },
+    comment: {
+      type: String,
+      default: ''
+    },
+    mediaUrls: {
+      type: [String],
+      default: []
+    }
   },
-  eventId: {
-    type: Number,
-    required: true
-  },
-  userId: {
-    type: String,
-    required: true
-  },
-  rating: {
-    type: Number,
-    min: 1,
-    max: 5,
-    required: true
-  },
-  comment: {
-    type: String,
-    default: ''
-  },
-  mediaUrls: {
-    type: [String],
-    default: []
-  },
-  createdAt: {
-    type: Date,
-    default: () => new Date()
-  },
-  updatedAt: {
-    type: Date,
-    default: () => new Date()
+  {
+    timestamps: true
   }
-});
+);
 
 const Review =
   mongoose.models.Review || mongoose.model('Review', reviewSchema);
 
-export { Review };       // named
-export default Review; 
+export { Review };
+export default Review;

@@ -1,4 +1,5 @@
 // src/controllers/reviewController.js
+import mongoose from 'mongoose';
 import {
   getReviewsByEventIdService,
   getReviewByIdService,
@@ -10,24 +11,16 @@ import {
   ensureEventExistsService
 } from '../services/reviewService.js';
 
-const parseEventId = (value) => {
-  const eventId = Number(value);
-  if (Number.isNaN(eventId)) {
-    const err = new Error('Invalid event id');
-    err.statusCode = 400;
-    throw err;
-  }
-  return eventId;
-};
+const isValidObjectId = (value) =>
+  typeof value === 'string' && mongoose.Types.ObjectId.isValid(value);
 
-const parseReviewId = (value) => {
-  const reviewId = Number(value);
-  if (Number.isNaN(reviewId)) {
-    const err = new Error('Invalid review id');
+const parseObjectId = (value, label) => {
+  if (!isValidObjectId(value)) {
+    const err = new Error(`Invalid ${label}`);
     err.statusCode = 400;
     throw err;
   }
-  return reviewId;
+  return value;
 };
 
 const assertEventExists = async (eventId) => {
@@ -53,7 +46,7 @@ const validateRating = (rating) => {
  */
 export const listEventReviews = async (req, res, next) => {
   try {
-    const eventId = parseEventId(req.params.eventId);
+    const eventId = parseObjectId(req.params.eventId, 'event id');
     await assertEventExists(eventId);
     const reviews = await getReviewsByEventIdService(eventId);
 
@@ -76,8 +69,8 @@ export const listEventReviews = async (req, res, next) => {
  */
 export const getReview = async (req, res, next) => {
   try {
-    const eventId = parseEventId(req.params.eventId);
-    const reviewId = parseReviewId(req.params.reviewId);
+    const eventId = parseObjectId(req.params.eventId, 'event id');
+    const reviewId = parseObjectId(req.params.reviewId, 'review id');
     await assertEventExists(eventId);
 
     const review = await getReviewByIdService(eventId, reviewId);
@@ -103,7 +96,7 @@ export const getReview = async (req, res, next) => {
  */
 export const createReview = async (req, res, next) => {
   try {
-    const eventId = parseEventId(req.params.eventId);
+    const eventId = parseObjectId(req.params.eventId, 'event id');
     const { userId, rating, comment, mediaUrls } = req.body;
 
     await assertEventExists(eventId);
@@ -146,8 +139,8 @@ export const createReview = async (req, res, next) => {
  */
 export const updateReview = async (req, res, next) => {
   try {
-    const eventId = parseEventId(req.params.eventId);
-    const reviewId = parseReviewId(req.params.reviewId);
+    const eventId = parseObjectId(req.params.eventId, 'event id');
+    const reviewId = parseObjectId(req.params.reviewId, 'review id');
     const { rating, comment, mediaUrls } = req.body;
 
     await assertEventExists(eventId);
@@ -184,8 +177,8 @@ export const updateReview = async (req, res, next) => {
  */
 export const deleteReview = async (req, res, next) => {
   try {
-    const eventId = parseEventId(req.params.eventId);
-    const reviewId = parseReviewId(req.params.reviewId);
+    const eventId = parseObjectId(req.params.eventId, 'event id');
+    const reviewId = parseObjectId(req.params.reviewId, 'review id');
 
     await assertEventExists(eventId);
 

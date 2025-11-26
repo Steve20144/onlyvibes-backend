@@ -1,0 +1,21 @@
+[dotenv@17.2.3] injecting env (5) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+[OnlyVibes] No MONGO_URI provided. Falling back to mock data mode.
+[OnlyVibes] OnlyVibes API running on port 4000
+PUT /api/events/486e90c2-89bd-402c-a389-f99582685390 404 10.746 ms
+POST /api/events 201 5.334 ms
+GET /api/events/ 200 3.757 ms
+GET /api/events/ 200 1.199 ms
+DELETE /api/events/ 404 1.537 ms
+GET /api/events/ 200 0.830 ms
+POST /api/events 201 2.172 ms
+GET /api/events/40b79647-afcc-43d8-bb06-cde9c9b4315d 200 1.028 ms
+PUT /api/events/40b79647-afcc-43d8-bb06-cde9c9b4315d 200 1.763 ms
+GET /api/events/40b79647-afcc-43d8-bb06-cde9c9b4315d 200 1.395 ms
+DELETE /api/events/40b79647-afcc-43d8-bb06-cde9c9b4315d 204 1.818 ms
+GET /api/events/40b79647-afcc-43d8-bb06-cde9c9b4315d 404 0.631 ms
+POST /api/events 201 1.449 ms
+GET /api/events/19f57e8a-69e4-4c83-8fde-917ec596fb07 200 0.765 ms
+PUT /api/events/19f57e8a-69e4-4c83-8fde-917ec596fb07 200 2.062 ms
+GET /api/events/19f57e8a-69e4-4c83-8fde-917ec596fb07 200 0.735 ms
+DELETE /api/events/19f57e8a-69e4-4c83-8fde-917ec596fb07 204 0.553 ms
+GET /api/events/19f57e8a-69e4-4c83-8fde-917ec596fb07 404 0.681 ms
