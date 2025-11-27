@@ -66,21 +66,18 @@ Full CRUD support + additional "liked events" endpoint.
 
 ## ✅ **Reviews Module**
 
-You have:
+Mounted with `app.use(reviewRoutes);`, so the router defines its full paths.
 
-```js
-app.use(reviewRoutes);
-```
+### **Endpoints**
 
-…which means all review endpoints are mounted **at the root**, unless `reviewRoutes` includes its own base path.
-
-### Example Possible Endpoints (depending on your reviewRoutes.js)
-
-If you used the Swagger-style nesting:
-
-| Method     | Endpoint                             | Description     |
-| ---------- | ------------------------------------ | --------------- |
-| **DELETE** | `/events/:eventId/reviews/:reviewId` | Delete a review |
+| Method     | Endpoint                                  | Description                                   |
+| ---------- | ----------------------------------------- | --------------------------------------------- |
+| **GET**    | `/events/:eventId/reviews`                 | List all reviews for a specific event         |
+| **GET**    | `/events/:eventId/reviews/:reviewId`       | Get a single review for an event              |
+| **POST**   | `/events/:eventId/reviews`                 | Create/submit a new review for an event       |
+| **PUT**    | `/events/:eventId/reviews/:reviewId`       | Update an existing review                     |
+| **DELETE** | `/events/:eventId/reviews/:reviewId`       | Delete a review                               |
+| **GET**    | `/accounts/:accountId/reviewed-events`     | List all events that a specific user reviewed |
 
 ---
 
