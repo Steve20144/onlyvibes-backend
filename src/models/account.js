@@ -3,13 +3,9 @@ import mongoose from 'mongoose';
 
 /**
  * Account schema for users and venues.
+ * We now rely on Mongo's default `_id` instead of a custom `id` field.
  */
 const accountSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-    unique: true // our own string id (not _id)
-  },
   username: {
     type: String,
     required: true,
@@ -58,4 +54,4 @@ const Account =
   mongoose.models.Account || mongoose.model('Account', accountSchema);
 
 export { Account };       // named
-export default Account;   // ⭐ default for `import Account from ...`
+export default Account;   // default for `import Account from ...`
