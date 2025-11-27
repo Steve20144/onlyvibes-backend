@@ -1,4 +1,4 @@
-// tests/accounts.test.js
+// src/tests/accounts.test.js
 import request from 'supertest';
 import app from '../app.js';
 import { accounts } from '../data/accounts.js';

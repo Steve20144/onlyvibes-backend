@@ -5,6 +5,7 @@ import cors from 'cors';
 import accountRoutes from './routes/accountRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import authRoutes from './routes/authRoutes.js';   // ⬅️ NEW
 import { logRequest } from './utils/logger.js';
 
 const app = express();
@@ -21,7 +22,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /**
- * 🔍 Custom request logging middleware (Option #2)
+ * 🔍 Custom request logging middleware
  */
 app.use((req, res, next) => {
   const start = Date.now();
@@ -58,10 +59,17 @@ app.get('/health', (req, res) => {
 
 /**
  * Routes
+ *
+ * NOTE:
+ * - accountRoutes is mounted at /accounts
+ * - eventRoutes is mounted at /events
+ * - reviewRoutes defines its own base path internally (as before)
+ * - authRoutes defines /auth/signup and /auth/login inside the router
  */
 app.use('/accounts', accountRoutes);
 app.use('/events', eventRoutes);
 app.use(reviewRoutes);
+app.use(authRoutes); // ⬅️ NEW: exposes /auth/signup and /auth/login
 
 /**
  * 404 handler
