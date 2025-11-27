@@ -1,10 +1,10 @@
 // src/services/accountService.js
 import mongoose from 'mongoose';
-import Account from '../models/account.js';         // note lowercase filename
+import Account from '../models/account.js';         // default export
 import { accounts } from '../data/accounts.js';
 
 /**
- * Generate a simple unique account id.
+ * Generate a simple unique account id for mock storage.
  * @returns {string}
  */
 const generateAccountId = () =>
@@ -18,6 +18,7 @@ const isDbConnected = () => mongoose.connection.readyState === 1;
 
 /**
  * Normalize a Mongoose document to a plain JS object and ensure `id` field exists.
+ * In Mongo mode, we expose `_id` as `id` for the API.
  * @param {object} doc
  * @returns {object|null}
  */
@@ -26,7 +27,7 @@ const normalizeAccountDoc = (doc) => {
 
   const obj = doc.toObject ? doc.toObject() : doc;
 
-  // Add a top-level `id` if missing (you already have `id` in schema, but just in case)
+  // Expose Mongo's _id as a top-level `id`
   if (obj._id && !obj.id) {
     obj.id = obj._id.toString();
   }
@@ -43,12 +44,10 @@ const normalizeAccountDoc = (doc) => {
  */
 export const createAccountService = async (payload) => {
   const now = new Date();
-  const id = generateAccountId();
 
   if (isDbConnected()) {
     try {
       const doc = await Account.create({
-        id, // ⭐ required by schema
         username: payload.name,
         email: payload.email,
         password: payload.password,
@@ -60,13 +59,19 @@ export const createAccountService = async (payload) => {
         updatedAt: now
       });
 
+      // Will add `id` from `_id`
       return normalizeAccountDoc(doc);
     } catch (error) {
-      console.error('createAccountService: MongoDB error, falling back to mock:', error.message);
+      console.error(
+        'createAccountService: MongoDB error, falling back to mock:',
+        error.message
+      );
     }
   }
 
-  // Fallback to mock data
+  // Fallback to mock data when DB is not connected
+  const id = generateAccountId();
+
   const newAccount = {
     id,
     username: payload.name,
@@ -87,17 +92,19 @@ export const createAccountService = async (payload) => {
 /**
  * Get an account by id.
  * @async
- * @param {string} id
+ * @param {string} id  - In Mongo mode this is `_id`, in mock mode it's `accounts[].id`
  * @returns {Promise<object|null>}
  */
 export const getAccountByIdService = async (id) => {
   if (isDbConnected()) {
     try {
-      // Your schema uses `id` (string), not Mongo's _id
-      const doc = await Account.findOne({ id });
+      const doc = await Account.findById(id); // uses Mongo `_id`
       return normalizeAccountDoc(doc);
     } catch (error) {
-      console.error('getAccountByIdService: MongoDB error, falling back to mock:', error.message);
+      console.error(
+        'getAccountByIdService: MongoDB error, falling back to mock:',
+        error.message
+      );
     }
   }
 
@@ -117,15 +124,18 @@ export const updateAccountService = async (id, updates) => {
 
   if (isDbConnected()) {
     try {
-      const doc = await Account.findOneAndUpdate(
-        { id },
+      const doc = await Account.findByIdAndUpdate(
+        id, // _id in Mongo
         { ...updates, updatedAt: now },
         { new: true }
       );
 
       return normalizeAccountDoc(doc);
     } catch (error) {
-      console.error('updateAccountService: MongoDB error, falling back to mock:', error.message);
+      console.error(
+        'updateAccountService: MongoDB error, falling back to mock:',
+        error.message
+      );
     }
   }
 
@@ -151,10 +161,13 @@ export const updateAccountService = async (id, updates) => {
 export const deleteAccountService = async (id) => {
   if (isDbConnected()) {
     try {
-      const result = await Account.findOneAndDelete({ id });
+      const result = await Account.findByIdAndDelete(id); // _id in Mongo
       return !!result;
     } catch (error) {
-      console.error('deleteAccountService: MongoDB error, falling back to mock:', error.message);
+      console.error(
+        'deleteAccountService: MongoDB error, falling back to mock:',
+        error.message
+      );
     }
   }
 
