@@ -6,12 +6,12 @@
     "description": "OpenAPI specification for Account and Preference resources of OnlyVibes"
   },
   "paths": {
-    "/accounts/{id}": {
+    "/accounts/{userId}": {
       "get": {
         "summary": "Get account by userId",
         "parameters": [
           {
-            "name": "id",
+            "name": "userId",
             "in": "path",
             "required": true,
             "schema": {
@@ -138,7 +138,7 @@
         "summary": "Update account by userId",
         "parameters": [
           {
-            "name": "id",
+            "name": "userId",
             "in": "path",
             "required": true,
             "schema": {
@@ -307,7 +307,7 @@
         "summary": "Delete account by userId",
         "parameters": [
           {
-            "name": "id",
+            "name": "userId",
             "in": "path",
             "required": true,
             "schema": {
@@ -1144,8 +1144,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
-            }
+              "type": "string"
+            },
+            "description": "Event id (Mongo ObjectId as string)"
           }
         ],
         "responses": {
@@ -1162,8 +1163,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
-            }
+              "type": "string"
+            },
+            "description": "Event id (Mongo ObjectId as string)"
           }
         ],
         "responses": {
@@ -1182,8 +1184,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
-            }
+              "type": "string"
+            },
+            "description": "Event id (Mongo ObjectId as string)"
           }
         ],
         "responses": {
@@ -1195,7 +1198,7 @@
                   "type": "object",
                   "properties": {
                     "eventId": {
-                      "type": "integer"
+                      "type": "string"
                     },
                     "likesCount": {
                       "type": "integer"
@@ -1339,17 +1342,18 @@
         }
       }
     },
-    "/events/{id}": {
+    "/events/{eventId}": {
       "get": {
         "summary": "Get event by ID",
         "parameters": [
           {
-            "name": "id",
+            "name": "eventId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
-            }
+              "type": "string"
+            },
+            "description": "Event id (Mongo ObjectId as string)"
           }
         ],
         "responses": {
@@ -1372,12 +1376,13 @@
         "summary": "Update an event",
         "parameters": [
           {
-            "name": "id",
+            "name": "eventId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
-            }
+              "type": "string"
+            },
+            "description": "Event id (Mongo ObjectId as string)"
           }
         ],
         "requestBody": {
@@ -1385,7 +1390,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EventCreate"
+                "$ref": "#/components/schemas/EventUpdate"
               }
             }
           }
@@ -1400,12 +1405,13 @@
         "summary": "Delete an event",
         "parameters": [
           {
-            "name": "id",
+            "name": "eventId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
-            }
+              "type": "string"
+            },
+            "description": "Event id (Mongo ObjectId as string)"
           }
         ],
         "responses": {
@@ -1581,7 +1587,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Account id (Mongo ObjectId as string)"
           }
         ],
         "responses": {
@@ -1612,7 +1619,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "Account id (Mongo ObjectId as string)"
           }
         ],
         "responses": {
@@ -2008,44 +2016,62 @@
       },
       "Event": {
         "type": "object",
+        "description": "Event as stored in MongoDB and returned to the UI.",
         "properties": {
-          "eventId": {
-            "type": "integer"
+          "id": {
+            "type": "string",
+            "description": "Event id (Mongo ObjectId as string)"
           },
           "creatorId": {
-            "type": "integer"
+            "type": "string",
+            "description": "Account id (Mongo ObjectId as string) of the creator"
           },
           "title": {
             "type": "string"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "default": ""
           },
-          "category": {
-            "type": "string"
+          "location": {
+            "type": "string",
+            "description": "Human-readable location (e.g. 'Athens City Center Rooftop')"
           },
           "dateTime": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "description": "Selected date & time of the event"
           },
-          "location": {
-            "type": "string"
+          "category": {
+            "type": "array",
+            "description": "At least one category selected in the UI",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
           },
           "imageUrl": {
             "type": "string",
-            "format": "uri"
+            "description": "Optional event hero image URL"
           },
-          "isCancelled": {
-            "type": "boolean"
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
-          "eventId",
+          "id",
           "creatorId",
           "title",
-          "category",
+          "location",
           "dateTime",
-          "location"
+          "category",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "Filter": {
@@ -2072,41 +2098,78 @@
         ]
       },
       "EventCreate": {
+  "type": "object",
+  "description": "Payload used by the UI to create a new event.",
+  "properties": {
+    "creatorId": {
+      "type": "string",
+      "description": "Account id (Mongo ObjectId as string) of the creator"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string",
+      "default": ""
+    },
+    "location": {
+      "type": "string"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "category": {
+      "type": "array",
+      "description": "At least one category selected in the UI",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "imageUrl": {
+      "type": "string",
+      "description": "Optional event hero image URL"
+    }
+  },
+  "required": [
+    "creatorId",
+    "title",
+    "location",
+    "dateTime",
+    "category"
+  ]
+},
+
+      "EventUpdate": {
         "type": "object",
+        "description": "Payload for updating an existing event. All fields are optional and mirror EventCreate.",
         "properties": {
           "title": {
-            "type": "string"
-          },
-          "eventId": {
-            "type": "string"
-          },
-          "ownerId": {
             "type": "string"
           },
           "description": {
             "type": "string"
           },
-          "category": {
+          "location": {
             "type": "string"
           },
           "dateTime": {
             "type": "string",
             "format": "date-time"
           },
-          "location": {
-            "type": "string"
+          "category": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "If provided, must contain at least one category."
           },
           "imageUrl": {
-            "type": "string",
-            "format": "uri"
+            "type": "string"
           }
-        },
-        "required": [
-          "title",
-          "category",
-          "dateTime",
-          "location"
-        ]
+        }
       },
       "Review": {
         "type": "object",
@@ -2281,9 +2344,11 @@
       },
       "ReviewedEventSummary": {
         "type": "object",
+        "description": "Summary of an event as returned from /accounts/{accountId}/reviewed-events.",
         "properties": {
           "eventId": {
-            "type": "integer"
+            "type": "string",
+            "description": "Event id (Mongo ObjectId as string)"
           },
           "title": {
             "type": "string"
