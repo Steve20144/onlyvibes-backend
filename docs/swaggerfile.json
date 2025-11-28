@@ -2,21 +2,16 @@
   "openapi": "3.0.0",
   "info": {
     "title": "OnlyVibes API",
-    "description": "OpenAPI specification for Account and Preference resources of OnlyVibes",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "description": "OpenAPI specification for Account and Preference resources of OnlyVibes"
   },
-  "servers": [
-    {
-      "url": "/"
-    }
-  ],
   "paths": {
-    "/accounts/{userId}": {
+    "/accounts/{id}": {
       "get": {
         "summary": "Get account by userId",
         "parameters": [
           {
-            "name": "userId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -30,7 +25,67 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/inline_response_200"
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "profilePictureUrl": {
+                      "type": "string"
+                    },
+                    "bio": {
+                      "type": "string"
+                    },
+                    "preferences": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isVerified": {
+                      "type": "boolean"
+                    },
+                    "likedEventsIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "followedAccountsIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "user",
+                        "venue",
+                        "admin"
+                      ]
+                    },
+                    "venueDetails": {
+                      "type": "object",
+                      "properties": {
+                        "location": {
+                          "type": "string"
+                        },
+                        "taxIdentificationNumHashed": {
+                          "type": "integer"
+                        },
+                        "businessRegistrationNumHashed": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -83,7 +138,7 @@
         "summary": "Update account by userId",
         "parameters": [
           {
-            "name": "userId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -92,14 +147,74 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/accounts_userId_body"
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "profilePictureUrl": {
+                    "type": "string"
+                  },
+                  "bio": {
+                    "type": "string"
+                  },
+                  "preferences": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "isVerified": {
+                    "type": "boolean"
+                  },
+                  "likedEventsIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "followedAccountsIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "venue",
+                      "admin"
+                    ]
+                  },
+                  "venueDetails": {
+                    "type": "object",
+                    "properties": {
+                      "location": {
+                        "type": "string"
+                      },
+                      "taxIdentificationNumHashed": {
+                        "type": "integer"
+                      },
+                      "businessRegistrationNumHashed": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -107,7 +222,67 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/inline_response_200"
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "profilePictureUrl": {
+                      "type": "string"
+                    },
+                    "bio": {
+                      "type": "string"
+                    },
+                    "preferences": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "isVerified": {
+                      "type": "boolean"
+                    },
+                    "likedEventsIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "followedAccountsIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "user",
+                        "venue",
+                        "admin"
+                      ]
+                    },
+                    "venueDetails": {
+                      "type": "object",
+                      "properties": {
+                        "location": {
+                          "type": "string"
+                        },
+                        "taxIdentificationNumHashed": {
+                          "type": "integer"
+                        },
+                        "businessRegistrationNumHashed": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -132,7 +307,7 @@
         "summary": "Delete account by userId",
         "parameters": [
           {
-            "name": "userId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -148,6 +323,102 @@
       }
     },
     "/accounts/{userId}/verification-request": {
+      "post": {
+        "summary": "Submit a verification request",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "fullName",
+                  "email",
+                  "governmentIdFile",
+                  "phoneNumber"
+                ],
+                "properties": {
+                  "fullName": {
+                    "type": "string",
+                    "description": "Full legal name of the user"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phoneNumber": {
+                    "type": "string",
+                    "description": "Validated phone number"
+                  },
+                  "governmentIdFile": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Upload of a valid government-issued ID"
+                  },
+                  "additionalDocuments": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "Optional supporting files (e.g., selfie, proof of address)"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "description": "Optional message or explanation for the request"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Verification request submitted"
+          },
+          "400": {
+            "description": "Invalid or incomplete data"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a verification request",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationRequestUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification request updated"
+          }
+        }
+      },
       "get": {
         "summary": "Get current verification request and its status",
         "parameters": [
@@ -166,72 +437,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/inline_response_200_1"
+                  "type": "object",
+                  "properties": {
+                    "fullName": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "phoneNumber": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "approved",
+                        "rejected"
+                      ]
+                    },
+                    "submittedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "adminComment": {
+                      "type": "string",
+                      "description": "Optional admin feedback or rejection reason"
+                    }
+                  }
                 }
               }
             }
           },
           "404": {
             "description": "No verification request found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update a verification request",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/VerificationRequestUpdate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Verification request updated"
-          }
-        }
-      },
-      "post": {
-        "summary": "Submit a verification request",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/userId_verificationrequest_body"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Verification request submitted"
-          },
-          "400": {
-            "description": "Invalid or incomplete data"
           }
         }
       }
@@ -275,14 +515,22 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/userId_preferences_body"
+                "type": "object",
+                "properties": {
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -316,14 +564,64 @@
       "post": {
         "summary": "Create a new user account",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/accounts_body"
+                "type": "object",
+                "required": [
+                  "email",
+                  "name",
+                  "password",
+                  "role"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "profilePictureUrl": {
+                    "type": "string"
+                  },
+                  "bio": {
+                    "type": "string"
+                  },
+                  "preferences": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "venue"
+                    ]
+                  },
+                  "venueDetails": {
+                    "type": "object",
+                    "properties": {
+                      "location": {
+                        "type": "string"
+                      },
+                      "taxIdentificationNumHashed": {
+                        "type": "integer"
+                      },
+                      "businessRegistrationNumHashed": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                }
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -356,7 +654,19 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/inline_response_200_2"
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "message": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    }
                   }
                 }
               }
@@ -377,14 +687,22 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/userId_notifications_body"
+                "type": "object",
+                "required": [
+                  "message"
+                ],
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  }
+                }
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -415,14 +733,19 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/notifications_notificationId_body"
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  }
+                }
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -478,7 +801,29 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/inline_response_200_3"
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "eventId": {
+                        "type": "integer"
+                      },
+                      "remindAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "isActive": {
+                        "type": "boolean"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "1_hour_before",
+                          "on_cancel"
+                        ]
+                      }
+                    }
                   }
                 }
               }
@@ -499,14 +844,36 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/userId_reminders_body"
+                "type": "object",
+                "required": [
+                  "eventId",
+                  "remindAt",
+                  "type"
+                ],
+                "properties": {
+                  "eventId": {
+                    "type": "integer"
+                  },
+                  "remindAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "1_hour_before",
+                      "on_cancel"
+                    ],
+                    "description": "Type of reminder: 1 hour before or on cancel"
+                  }
+                }
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -537,14 +904,23 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/reminders_reminderId_body"
+                "type": "object",
+                "properties": {
+                  "remindAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  }
+                }
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -601,7 +977,30 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/inline_response_200_4"
+                    "type": "object",
+                    "properties": {
+                      "eventId": {
+                        "type": "integer"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "location": {
+                        "type": "string"
+                      },
+                      "datetime": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "category": {
+                        "type": "string"
+                      },
+                      "likecounter": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Recommendation confidence score (0 to 1)"
+                      }
+                    }
                   }
                 }
               }
@@ -624,14 +1023,22 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/userId_follow_body"
+                "type": "object",
+                "properties": {
+                  "targetId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "targetId"
+                ]
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -785,7 +1192,15 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/inline_response_200_5"
+                  "type": "object",
+                  "properties": {
+                    "eventId": {
+                      "type": "integer"
+                    },
+                    "likesCount": {
+                      "type": "integer"
+                    }
+                  }
                 }
               }
             }
@@ -853,7 +1268,6 @@
           {
             "name": "category",
             "in": "query",
-            "required": false,
             "schema": {
               "type": "string"
             }
@@ -861,7 +1275,6 @@
           {
             "name": "location",
             "in": "query",
-            "required": false,
             "schema": {
               "type": "string"
             }
@@ -869,7 +1282,6 @@
           {
             "name": "fromDate",
             "in": "query",
-            "required": false,
             "schema": {
               "type": "string",
               "format": "date"
@@ -878,7 +1290,6 @@
           {
             "name": "toDate",
             "in": "query",
-            "required": false,
             "schema": {
               "type": "string",
               "format": "date"
@@ -887,7 +1298,6 @@
           {
             "name": "sort",
             "in": "query",
-            "required": false,
             "schema": {
               "type": "string"
             }
@@ -913,14 +1323,14 @@
         "summary": "Create a new event",
         "description": "Allows verified users or venues to create a new event.",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EventCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -929,12 +1339,12 @@
         }
       }
     },
-    "/events/{eventId}": {
+    "/events/{id}": {
       "get": {
         "summary": "Get event by ID",
         "parameters": [
           {
-            "name": "eventId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -962,7 +1372,7 @@
         "summary": "Update an event",
         "parameters": [
           {
-            "name": "eventId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -971,14 +1381,14 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EventCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -990,7 +1400,7 @@
         "summary": "Delete an event",
         "parameters": [
           {
-            "name": "eventId",
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -1006,6 +1416,34 @@
       }
     },
     "/events/{eventId}/reviews": {
+      "post": {
+        "summary": "Create a review",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Review created"
+          }
+        }
+      },
       "get": {
         "summary": "Get all reviews for an event",
         "parameters": [
@@ -1031,34 +1469,6 @@
                 }
               }
             }
-          }
-        }
-      },
-      "post": {
-        "summary": "Create a review",
-        "parameters": [
-          {
-            "name": "eventId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReviewCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Review created"
           }
         }
       }
@@ -1118,14 +1528,14 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ReviewCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -1156,6 +1566,194 @@
         "responses": {
           "204": {
             "description": "Review deleted"
+          }
+        }
+      }
+    },
+    "/events/liked/{userId}": {
+      "get": {
+        "summary": "Get events liked by a user",
+        "description": "List events that have been liked by the specified user.",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of liked events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/accounts/{accountId}/reviewed-events": {
+      "get": {
+        "summary": "Get events reviewed by an account",
+        "description": "List all events that a specific account has reviewed.",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of reviewed events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReviewedEventSummary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/signup": {
+      "post": {
+        "summary": "Sign up a new user account",
+        "description": "Create a new account and return the created account together with a JWT access token.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewAccount"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created and token issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "JWT access token"
+                    },
+                    "account": {
+                      "$ref": "#/components/schemas/Account"
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "account"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid signup data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Log in with email and password",
+        "description": "Authenticate a user and return a JWT access token together with the account payload.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "JWT access token"
+                    },
+                    "account": {
+                      "$ref": "#/components/schemas/Account"
+                    }
+                  },
+                  "required": [
+                    "token",
+                    "account"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid login credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - incorrect email or password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -1193,8 +1791,8 @@
             "description": "Page number (1-based)",
             "required": false,
             "schema": {
-              "minimum": 1,
               "type": "integer",
+              "minimum": 1,
               "default": 1
             }
           },
@@ -1204,9 +1802,9 @@
             "description": "Number of items per page",
             "required": false,
             "schema": {
-              "maximum": 100,
-              "minimum": 1,
               "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
               "default": 20
             }
           }
@@ -1259,10 +1857,6 @@
   "components": {
     "schemas": {
       "SearchResponse": {
-        "required": [
-          "pagination",
-          "results"
-        ],
         "type": "object",
         "properties": {
           "results": {
@@ -1281,18 +1875,13 @@
           "pagination": {
             "$ref": "#/components/schemas/Pagination"
           }
-        }
+        },
+        "required": [
+          "results",
+          "pagination"
+        ]
       },
       "VerificationRequestUpdate": {
-        "required": [
-          "email",
-          "emailVerificationToken",
-          "idDocument",
-          "idNumber",
-          "idType",
-          "phoneNumber",
-          "phoneVerificationCode"
-        ],
         "type": "object",
         "properties": {
           "idType": {
@@ -1305,13 +1894,13 @@
           },
           "idDocument": {
             "type": "string",
-            "description": "Scanned copy or photo of the government-issued ID",
-            "format": "binary"
+            "format": "binary",
+            "description": "Scanned copy or photo of the government-issued ID"
           },
           "email": {
             "type": "string",
-            "description": "User's email address for confirmation",
-            "format": "email"
+            "format": "email",
+            "description": "User's email address for confirmation"
           },
           "emailVerificationToken": {
             "type": "string",
@@ -1333,15 +1922,18 @@
             "type": "string",
             "description": "Data required for the chosen authentication method (e.g., one-time password, security question answer)"
           }
-        }
+        },
+        "required": [
+          "idType",
+          "idNumber",
+          "idDocument",
+          "email",
+          "emailVerificationToken",
+          "phoneNumber",
+          "phoneVerificationCode"
+        ]
       },
       "EventBase": {
-        "required": [
-          "endDate",
-          "id",
-          "startDate",
-          "title"
-        ],
         "type": "object",
         "properties": {
           "id": {
@@ -1368,15 +1960,15 @@
           "availableSeats": {
             "type": "integer"
           }
-        }
+        },
+        "required": [
+          "id",
+          "title",
+          "startDate",
+          "endDate"
+        ]
       },
       "Pagination": {
-        "required": [
-          "page",
-          "pageSize",
-          "totalItems",
-          "totalPages"
-        ],
         "type": "object",
         "properties": {
           "page": {
@@ -1391,13 +1983,15 @@
           "totalPages": {
             "type": "integer"
           }
-        }
+        },
+        "required": [
+          "page",
+          "pageSize",
+          "totalItems",
+          "totalPages"
+        ]
       },
       "Error": {
-        "required": [
-          "code",
-          "message"
-        ],
         "type": "object",
         "properties": {
           "code": {
@@ -1406,17 +2000,13 @@
           "message": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
       },
       "Event": {
-        "required": [
-          "category",
-          "creatorId",
-          "dateTime",
-          "eventId",
-          "location",
-          "title"
-        ],
         "type": "object",
         "properties": {
           "eventId": {
@@ -1448,14 +2038,17 @@
           "isCancelled": {
             "type": "boolean"
           }
-        }
+        },
+        "required": [
+          "eventId",
+          "creatorId",
+          "title",
+          "category",
+          "dateTime",
+          "location"
+        ]
       },
       "Filter": {
-        "required": [
-          "filterId",
-          "type",
-          "value"
-        ],
         "type": "object",
         "properties": {
           "filterId": {
@@ -1471,15 +2064,14 @@
           "value": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "filterId",
+          "type",
+          "value"
+        ]
       },
       "EventCreate": {
-        "required": [
-          "category",
-          "dateTime",
-          "location",
-          "title"
-        ],
         "type": "object",
         "properties": {
           "title": {
@@ -1508,7 +2100,13 @@
             "type": "string",
             "format": "uri"
           }
-        }
+        },
+        "required": [
+          "title",
+          "category",
+          "dateTime",
+          "location"
+        ]
       },
       "Review": {
         "type": "object",
@@ -1541,9 +2139,6 @@
         }
       },
       "ReviewCreate": {
-        "required": [
-          "rating"
-        ],
         "type": "object",
         "properties": {
           "rating": {
@@ -1558,7 +2153,10 @@
               "type": "string"
             }
           }
-        }
+        },
+        "required": [
+          "rating"
+        ]
       },
       "Preferences": {
         "type": "object",
@@ -1584,15 +2182,6 @@
         }
       },
       "Account": {
-        "required": [
-          "createdAt",
-          "email",
-          "id",
-          "password",
-          "role",
-          "updatedAt",
-          "username"
-        ],
         "type": "object",
         "properties": {
           "id": {
@@ -1626,15 +2215,18 @@
             "type": "string",
             "format": "date-time"
           }
-        }
-      },
-      "NewAccount": {
+        },
         "required": [
+          "id",
+          "username",
           "email",
           "password",
           "role",
-          "username"
-        ],
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "NewAccount": {
         "type": "object",
         "properties": {
           "username": {
@@ -1655,7 +2247,13 @@
               "venue"
             ]
           }
-        }
+        },
+        "required": [
+          "username",
+          "email",
+          "password",
+          "role"
+        ]
       },
       "UpdateAccount": {
         "type": "object",
@@ -1681,345 +2279,7 @@
           }
         }
       },
-      "inline_response_200": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "email": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "profilePictureUrl": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string"
-          },
-          "preferences": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "isVerified": {
-            "type": "boolean"
-          },
-          "likedEventsIds": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            }
-          },
-          "followedAccountsIds": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            }
-          },
-          "role": {
-            "type": "string",
-            "enum": [
-              "user",
-              "venue",
-              "admin"
-            ]
-          },
-          "venueDetails": {
-            "$ref": "#/components/schemas/accountsuserId_venueDetails"
-          }
-        }
-      },
-      "accountsuserId_venueDetails": {
-        "type": "object",
-        "properties": {
-          "location": {
-            "type": "string"
-          },
-          "taxIdentificationNumHashed": {
-            "type": "integer"
-          },
-          "businessRegistrationNumHashed": {
-            "type": "integer"
-          }
-        }
-      },
-      "accounts_userId_body": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "email": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "profilePictureUrl": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string"
-          },
-          "preferences": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "isVerified": {
-            "type": "boolean"
-          },
-          "likedEventsIds": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            }
-          },
-          "followedAccountsIds": {
-            "type": "array",
-            "items": {
-              "type": "integer"
-            }
-          },
-          "role": {
-            "type": "string",
-            "enum": [
-              "user",
-              "venue",
-              "admin"
-            ]
-          },
-          "venueDetails": {
-            "$ref": "#/components/schemas/accountsuserId_venueDetails"
-          }
-        }
-      },
-      "inline_response_200_1": {
-        "type": "object",
-        "properties": {
-          "fullName": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "phoneNumber": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "approved",
-              "rejected"
-            ]
-          },
-          "submittedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "adminComment": {
-            "type": "string",
-            "description": "Optional admin feedback or rejection reason"
-          }
-        }
-      },
-      "userId_verificationrequest_body": {
-        "required": [
-          "email",
-          "fullName",
-          "governmentIdFile",
-          "phoneNumber"
-        ],
-        "type": "object",
-        "properties": {
-          "fullName": {
-            "type": "string",
-            "description": "Full legal name of the user"
-          },
-          "email": {
-            "type": "string",
-            "format": "email"
-          },
-          "phoneNumber": {
-            "type": "string",
-            "description": "Validated phone number"
-          },
-          "governmentIdFile": {
-            "type": "string",
-            "description": "Upload of a valid government-issued ID",
-            "format": "binary"
-          },
-          "additionalDocuments": {
-            "type": "array",
-            "description": "Optional supporting files (e.g., selfie, proof of address)",
-            "items": {
-              "type": "string",
-              "format": "binary"
-            }
-          },
-          "notes": {
-            "type": "string",
-            "description": "Optional message or explanation for the request"
-          }
-        }
-      },
-      "userId_preferences_body": {
-        "type": "object",
-        "properties": {
-          "categories": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "accounts_body": {
-        "required": [
-          "email",
-          "name",
-          "password",
-          "role"
-        ],
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          },
-          "profilePictureUrl": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string"
-          },
-          "preferences": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "role": {
-            "type": "string",
-            "enum": [
-              "user",
-              "venue"
-            ]
-          },
-          "venueDetails": {
-            "$ref": "#/components/schemas/accountsuserId_venueDetails"
-          }
-        }
-      },
-      "inline_response_200_2": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "message": {
-            "type": "string"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "userId_notifications_body": {
-        "required": [
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "notifications_notificationId_body": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "inline_response_200_3": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer"
-          },
-          "eventId": {
-            "type": "integer"
-          },
-          "remindAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "1_hour_before",
-              "on_cancel"
-            ]
-          }
-        }
-      },
-      "userId_reminders_body": {
-        "required": [
-          "eventId",
-          "remindAt",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "eventId": {
-            "type": "integer"
-          },
-          "remindAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "type": {
-            "type": "string",
-            "description": "Type of reminder: 1 hour before or on cancel",
-            "enum": [
-              "1_hour_before",
-              "on_cancel"
-            ]
-          }
-        }
-      },
-      "reminders_reminderId_body": {
-        "type": "object",
-        "properties": {
-          "remindAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "isActive": {
-            "type": "boolean"
-          }
-        }
-      },
-      "inline_response_200_4": {
+      "ReviewedEventSummary": {
         "type": "object",
         "properties": {
           "eventId": {
@@ -2031,41 +2291,24 @@
           "location": {
             "type": "string"
           },
-          "datetime": {
+          "averageRating": {
+            "type": "number",
+            "format": "float"
+          },
+          "reviewCount": {
+            "type": "integer"
+          },
+          "lastReviewedAt": {
             "type": "string",
             "format": "date-time"
-          },
-          "category": {
-            "type": "string"
-          },
-          "likecounter": {
-            "type": "number",
-            "description": "Recommendation confidence score (0 to 1)",
-            "format": "float"
           }
-        }
-      },
-      "userId_follow_body": {
+        },
         "required": [
-          "targetId"
-        ],
-        "type": "object",
-        "properties": {
-          "targetId": {
-            "type": "string"
-          }
-        }
-      },
-      "inline_response_200_5": {
-        "type": "object",
-        "properties": {
-          "eventId": {
-            "type": "integer"
-          },
-          "likesCount": {
-            "type": "integer"
-          }
-        }
+          "eventId",
+          "title",
+          "averageRating",
+          "reviewCount"
+        ]
       }
     }
   }
