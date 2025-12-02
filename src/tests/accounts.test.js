@@ -1,44 +1,35 @@
 // src/tests/accounts.test.js
 import request from 'supertest';
+import mongoose from 'mongoose';
 import app from '../app.js';
-import { accounts } from '../data/accounts.js';
+import Account from '../models/account.js';
+import createTestDb from './utils/testDb.js';
 
-/**
- * Reset mock accounts before each test.
- * (Works when DB is not connected; harmless if DB is used instead.)
- */
-beforeEach(() => {
-  accounts.length = 0; // clear
-  accounts.push(
-    {
-      id: 'user-1',
-      username: 'partylover',
-      email: 'user1@example.com',
-      password: 'password1',
-      role: 'user',
-      isVerified: true,
-      preferences: ['music', 'party'],
-      venueDetails: null,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 'venue-1',
-      username: 'club-vibes',
-      email: 'venue@example.com',
-      password: 'venuepass',
-      role: 'venue',
-      isVerified: true,
-      preferences: [],
-      venueDetails: {
-        location: 'Athens Center',
-        taxIdentificationNumHashed: 123456,
-        businessRegistrationNumHashed: 987654
-      },
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  );
+const testDb = createTestDb();
+let baseAccount;
+
+beforeAll(async () => {
+  await testDb.connect();
+});
+
+afterAll(async () => {
+  await testDb.disconnect();
+});
+
+beforeEach(async () => {
+  await testDb.clearDatabase();
+
+  baseAccount = await Account.create({
+    username: 'partylover',
+    email: 'user1@example.com',
+    password: 'password1',
+    role: 'user',
+    isVerified: true,
+    preferences: ['music', 'party'],
+    venueDetails: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
 });
 
 describe('Accounts API', () => {
@@ -79,16 +70,17 @@ describe('Accounts API', () => {
   });
 
   test('GET /accounts/:id returns an existing account', async () => {
-    const res = await request(app).get('/accounts/user-1');
+    const res = await request(app).get(`/accounts/${baseAccount._id}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.id).toBe('user-1');
+    expect(res.body.data.id).toBe(baseAccount._id.toString());
     expect(res.body.message).toBe('Account retrieved');
   });
 
   test('GET /accounts/:id returns 404 for unknown id', async () => {
-    const res = await request(app).get('/accounts/unknown');
+    const unknownId = new mongoose.Types.ObjectId().toString();
+    const res = await request(app).get(`/accounts/${unknownId}`);
 
     expect(res.statusCode).toBe(404);
     expect(res.body.success).toBe(false);
@@ -97,7 +89,7 @@ describe('Accounts API', () => {
 
   test('PUT /accounts/:id updates an account', async () => {
     const res = await request(app)
-      .put('/accounts/user-1')
+      .put(`/accounts/${baseAccount._id}`)
       .send({ username: 'new-name' });
 
     expect(res.statusCode).toBe(200);
@@ -107,14 +99,14 @@ describe('Accounts API', () => {
   });
 
   test('DELETE /accounts/:id removes an account', async () => {
-    const res = await request(app).delete('/accounts/user-1');
+    const res = await request(app).delete(`/accounts/${baseAccount._id}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.message).toBe('Account deleted');
 
     // Instead of checking the mock array directly, verify via API:
-    const after = await request(app).get('/accounts/user-1');
+    const after = await request(app).get(`/accounts/${baseAccount._id}`);
     expect(after.statusCode).toBe(404);
     expect(after.body.success).toBe(false);
     expect(after.body.message).toBe('Account not found');

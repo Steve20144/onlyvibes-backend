@@ -1,35 +1,84 @@
 // src/tests/events.test.js
 import request from 'supertest';
+import mongoose from 'mongoose';
 import app from '../app.js';
+import Event from '../models/event.js';
+import Account from '../models/account.js';
+import createTestDb from './utils/testDb.js';
 
-// Any valid MongoDB ObjectId string (we don't actually hit a real DB here)
-const VALID_OBJECT_ID = '507f1f77bcf86cd799439011';
+const testDb = createTestDb();
+let creatorAccount;
+let upcomingParty;
+let yogaSession;
+
+beforeAll(async () => {
+  await testDb.connect();
+});
+
+afterAll(async () => {
+  await testDb.disconnect();
+});
+
+beforeEach(async () => {
+  await testDb.clearDatabase();
+
+  creatorAccount = await Account.create({
+    username: 'club-vibes',
+    email: 'venue@example.com',
+    password: 'venuepass',
+    role: 'venue'
+  });
+
+  const creatorId = creatorAccount._id;
+
+  upcomingParty = await Event.create({
+    creatorId,
+    title: 'Night Vibes Party',
+    description: 'An unforgettable night with top DJs.',
+    category: ['music'],
+    dateTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    location: 'Athens',
+    imageUrl: 'https://example.com/events/night-vibes.jpg'
+  });
+
+  yogaSession = await Event.create({
+    creatorId,
+    title: 'Morning Yoga in the Park',
+    description: 'Relax & stretch at the national garden.',
+    category: ['sports'],
+    dateTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+    location: 'Athens',
+    imageUrl: 'https://example.com/events/yoga.jpg'
+  });
+});
 
 describe('Events API', () => {
-  test('GET /events returns empty list when DB has no events / not connected', async () => {
+  test('GET /events returns persisted events', async () => {
     const res = await request(app).get('/events');
 
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body.data.length).toBe(0);
-    expect(res.body.message).toBe('No events found.');
+    expect(res.body.data).toHaveLength(2);
+    expect(res.body.data.map((e) => e.id)).toEqual(
+      expect.arrayContaining([
+        upcomingParty._id.toString(),
+        yogaSession._id.toString()
+      ])
+    );
+    expect(res.body.message).toBe('Events retrieved');
   });
 
-  test('GET /events with category filter returns empty list and filter message', async () => {
+  test('GET /events filters by category', async () => {
     const res = await request(app).get('/events?category=music');
 
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
-    expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body.data.length).toBe(0);
-    expect(res.body.message).toBe(
-      'No events found. Try adjusting your filters.'
-    );
+    expect(res.body.data).toHaveLength(1);
+    expect(res.body.data[0].title).toBe('Night Vibes Party');
   });
 
-  test('GET /events with filters that match nothing returns proper message', async () => {
-    const res = await request(app).get('/events?category=arts&location=Athens');
+  test('GET /events with filters that match nothing returns friendly message', async () => {
+    const res = await request(app).get('/events?category=arts&location=Patra');
 
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
@@ -39,16 +88,26 @@ describe('Events API', () => {
     );
   });
 
+  test('GET /events/:id returns the requested event', async () => {
+    const res = await request(app).get(`/events/${upcomingParty._id}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.id).toBe(upcomingParty._id.toString());
+    expect(res.body.data.title).toBe('Night Vibes Party');
+  });
+
   test('GET /events/:id with invalid id format returns 400', async () => {
-    const res = await request(app).get('/events/1'); // not a valid ObjectId
+    const res = await request(app).get('/events/1');
 
     expect(res.statusCode).toBe(400);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toBe('Invalid event id');
   });
 
-  test('GET /events/:id with valid ObjectId but missing event returns 404', async () => {
-    const res = await request(app).get(`/events/${VALID_OBJECT_ID}`);
+  test('GET /events/:id with missing event returns 404', async () => {
+    const unknownId = new mongoose.Types.ObjectId().toString();
+    const res = await request(app).get(`/events/${unknownId}`);
 
     expect(res.statusCode).toBe(404);
     expect(res.body.success).toBe(false);
@@ -65,62 +124,57 @@ describe('Events API', () => {
       imageUrl: 'https://example.com/events/art-gallery.jpg'
     };
 
-    // Missing creatorId
-    const resMissing = await request(app)
-      .post('/events')
-      .send(baseEvent);
-
+    const resMissing = await request(app).post('/events').send(baseEvent);
     expect(resMissing.statusCode).toBe(400);
-    expect(resMissing.body.success).toBe(false);
     expect(resMissing.body.message).toBe('A valid creatorId is required.');
 
-    // Invalid creatorId format
     const resInvalid = await request(app)
       .post('/events')
-      .send({
-        ...baseEvent,
-        creatorId: 'not-an-object-id'
-      });
-
+      .send({ ...baseEvent, creatorId: 'not-an-object-id' });
     expect(resInvalid.statusCode).toBe(400);
-    expect(resInvalid.body.success).toBe(false);
     expect(resInvalid.body.message).toBe('A valid creatorId is required.');
   });
 
-  test('POST /events with valid payload but no DB connection returns 500', async () => {
-    const newEvent = {
+  test('POST /events persists a new event when payload is valid', async () => {
+    const payload = {
       title: 'Art Gallery Opening',
       description: 'Local artists showcase.',
       categories: ['arts'],
       dateTime: new Date().toISOString(),
       location: 'Thessaloniki',
       imageUrl: 'https://example.com/events/art-gallery.jpg',
-      creatorId: VALID_OBJECT_ID
+      creatorId: creatorAccount._id.toString()
     };
 
-    const res = await request(app).post('/events').send(newEvent);
+    const res = await request(app).post('/events').send(payload);
 
-    // With the current service implementation, this fails because Mongo is not connected
-    expect(res.statusCode).toBe(500);
-    expect(res.body.success).toBe(false);
-    expect(res.body.message).toBe('Database not available');
+    expect(res.statusCode).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.title).toBe(payload.title);
+    expect(res.body.message).toBe('Event created successfully');
+
+    const eventsInDb = await Event.find({});
+    expect(eventsInDb).toHaveLength(3);
   });
 
-  test('PUT /events/:id rejects payload without editable fields', async () => {
+  test('PUT /events/:id updates editable fields', async () => {
     const res = await request(app)
-      .put(`/events/${VALID_OBJECT_ID}`)
-      .send({ creatorId: VALID_OBJECT_ID }); // not editable
+      .put(`/events/${upcomingParty._id}`)
+      .send({
+        title: 'Night Vibes Reloaded',
+        category: ['music', 'dance'],
+        location: 'Thessaloniki'
+      });
 
-    expect(res.statusCode).toBe(400);
-    expect(res.body.success).toBe(false);
-    expect(res.body.message).toMatch(
-      /Field "creatorId" cannot be updated|Provide at least one editable field/i
-    );
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.title).toBe('Night Vibes Reloaded');
+    expect(res.body.data.category).toEqual(['music', 'dance']);
   });
 
   test('PUT /events/:id validates malformed dateTime', async () => {
     const res = await request(app)
-      .put(`/events/${VALID_OBJECT_ID}`)
+      .put(`/events/${upcomingParty._id}`)
       .send({ dateTime: 'not-a-date' });
 
     expect(res.statusCode).toBe(400);
@@ -130,19 +184,22 @@ describe('Events API', () => {
     );
   });
 
+  test('DELETE /events/:id removes an existing event', async () => {
+    const res = await request(app).delete(`/events/${yogaSession._id}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.message).toBe('Event deleted successfully');
+
+    const after = await Event.findById(yogaSession._id);
+    expect(after).toBeNull();
+  });
+
   test('DELETE /events/:id with invalid id returns 400', async () => {
     const res = await request(app).delete('/events/1');
 
     expect(res.statusCode).toBe(400);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toBe('Invalid event id');
-  });
-
-  test('DELETE /events/:id with valid id but no DB connection returns 404', async () => {
-    const res = await request(app).delete(`/events/${VALID_OBJECT_ID}`);
-
-    expect(res.statusCode).toBe(404);
-    expect(res.body.success).toBe(false);
-    expect(res.body.message).toBe('Event not found');
   });
 });
