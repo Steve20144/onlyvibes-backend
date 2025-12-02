@@ -24,6 +24,7 @@ beforeEach(async () => {
 });
 
 describe('Auth API', () => {
+  
   test('POST /auth/signup fails with missing fields', async () => {
     const res = await request(app)
       .post('/auth/signup')

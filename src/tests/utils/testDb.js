@@ -6,6 +6,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
  */
 export const createTestDb = () => {
   let mongoServer = null;
+  let mongoUri = '';
 
   return {
     /**
@@ -13,7 +14,8 @@ export const createTestDb = () => {
      */
     async connect() {
       mongoServer = await MongoMemoryServer.create();
-      await mongoose.connect(mongoServer.getUri());
+      mongoUri = mongoServer.getUri();
+      await mongoose.connect(mongoUri);
     },
 
     /**
@@ -39,6 +41,13 @@ export const createTestDb = () => {
         await mongoServer.stop();
         mongoServer = null;
       }
+    },
+
+    /**
+     * Expose the current Mongo URI for manual reconnections in tests.
+     */
+    getUri() {
+      return mongoUri;
     }
   };
 };

@@ -16,6 +16,17 @@ const ensureDbConnected = () => {
   }
 };
 
+const ensureEmailAvailable = async (email) => {
+  const normalizedEmail = typeof email === 'string' ? email.toLowerCase() : email;
+  const existing = await Account.findOne({ email: normalizedEmail });
+
+  if (existing) {
+    const err = new Error('Email already in use');
+    err.statusCode = 409;
+    throw err;
+  }
+};
+
 /**
  * Normalize a Mongoose document to a plain JS object and ensure `id` field exists.
  * In Mongo mode, we expose `_id` as `id` for the API.
@@ -46,6 +57,7 @@ export const createAccountService = async (payload) => {
   const now = new Date();
 
   ensureDbConnected();
+  await ensureEmailAvailable(payload.email);
 
   try {
     const doc = await Account.create({
@@ -70,7 +82,7 @@ export const createAccountService = async (payload) => {
 /**
  * Get an account by id.
  * @async
- * @param {string} id  - In Mongo mode this is `_id`, in mock mode it's `accounts[].id`
+ * @param {string} id  - In Mongo mode this is `_id`
  * @returns {Promise<object|null>}
  */
 export const getAccountByIdService = async (id) => {
