@@ -1,4 +1,6 @@
+
 # **OnlyVibes Backend – MVP Implementation**
+
 
 ## Backend Workflow in Brief
 1. `server.js` loads environment variables, opens the MongoDB connection defined in `config/database.js`, and starts the Express app.
