@@ -1,8 +1,13 @@
 // src/tests/accounts.test.js
 import request from 'supertest';
 import mongoose from 'mongoose';
+import { jest } from '@jest/globals';
 import app from '../app.js';
 import Account from '../models/account.js';
+import {
+  updateAccountService,
+  deleteAccountService
+} from '../services/accountService.js';
 import createTestDb from './utils/testDb.js';
 
 const testDb = createTestDb();
@@ -33,6 +38,10 @@ beforeEach(async () => {
   await testDb.clearDatabase();
 
   await seedBaseAccount();
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
 describe('Accounts API', () => {
@@ -225,6 +234,66 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Provide at least one field to update.');
   });
 
+  test('PUT /accounts/:id rejects unknown fields', async () => {
+    const res = await request(app)
+      .put(`/accounts/${baseAccount._id}`)
+      .send({ favoriteFood: 'pizza' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('Field "favoriteFood" cannot be updated.');
+  });
+
+  test('PUT /accounts/:id enforces username length', async () => {
+    const res = await request(app)
+      .put(`/accounts/${baseAccount._id}`)
+      .send({ username: 'a' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('username must be at least 2 characters.');
+  });
+
+  test('PUT /accounts/:id validates preferences array', async () => {
+    const res = await request(app)
+      .put(`/accounts/${baseAccount._id}`)
+      .send({ preferences: 'music' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('preferences must be an array of strings');
+  });
+
+  test('PUT /accounts/:id validates venueDetails object', async () => {
+    const res = await request(app)
+      .put(`/accounts/${baseAccount._id}`)
+      .send({ venueDetails: 'Athens' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('venueDetails must be an object');
+  });
+
+  test('PUT /accounts/:id validates isVerified type', async () => {
+    const res = await request(app)
+      .put(`/accounts/${baseAccount._id}`)
+      .send({ isVerified: 'yes' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('isVerified must be a boolean');
+  });
+
+  test('PUT /accounts/:id rejects non-object payloads', async () => {
+    const res = await request(app)
+      .put(`/accounts/${baseAccount._id}`)
+      .send(['not-an-object']);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('Request body must be a JSON object.');
+  });
+
   test('PUT /accounts/:id rejects invalid role updates', async () => {
     const res = await request(app)
       .put(`/accounts/${baseAccount._id}`)
@@ -263,5 +332,41 @@ describe('Accounts API', () => {
     await mongoose.connect(testDb.getUri());
     await testDb.clearDatabase();
     await seedBaseAccount();
+  });
+
+  test('updateAccountService surfaces database errors', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = jest
+      .spyOn(Account, 'findByIdAndUpdate')
+      .mockImplementation(() => {
+        throw new Error('test-update-error');
+      });
+
+    await expect(
+      updateAccountService(baseAccount._id.toString(), { username: 'retry-me' })
+    ).rejects.toThrow('test-update-error');
+
+    expect(spy).toHaveBeenCalledWith(
+      baseAccount._id.toString(),
+      expect.objectContaining({ username: 'retry-me' }),
+      expect.objectContaining({ new: true, runValidators: true })
+    );
+
+    consoleSpy.mockRestore();
+  });
+
+  test('deleteAccountService surfaces database errors', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const spy = jest.spyOn(Account, 'findByIdAndDelete').mockImplementation(() => {
+      throw new Error('test-delete-error');
+    });
+
+    await expect(deleteAccountService(baseAccount._id.toString())).rejects.toThrow(
+      'test-delete-error'
+    );
+
+    expect(spy).toHaveBeenCalledWith(baseAccount._id.toString());
+
+    consoleSpy.mockRestore();
   });
 });
