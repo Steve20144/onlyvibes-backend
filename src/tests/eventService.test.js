@@ -103,6 +103,17 @@ describe('eventService when MongoDB is connected', () => {
     });
   });
 
+  test('listEventsService assigns "id" and removes __v from normalized docs', async () => {
+    const doc = createMockDoc({ title: 'Normalized Event', __v: 7 });
+    const sortMock = jest.fn().mockResolvedValue([doc]);
+    jest.spyOn(Event, 'find').mockReturnValue({ sort: sortMock });
+
+    const [result] = await listEventsService();
+
+    expect(result.id).toBe(doc._id.toString());
+    expect(result).not.toHaveProperty('__v');
+  });
+
   test('getEventByIdService returns a normalized document', async () => {
     const doc = createMockDoc({ title: 'Yoga Morning' });
     const spy = jest.spyOn(Event, 'findById').mockResolvedValue(doc);
@@ -119,6 +130,18 @@ describe('eventService when MongoDB is connected', () => {
     const result = await getEventByIdService(new mongoose.Types.ObjectId().toString());
 
     expect(result).toBeNull();
+  });
+
+  test('getEventByIdService normalizes plain objects without toObject()', async () => {
+    const _id = new mongoose.Types.ObjectId();
+    const plainDoc = { _id, title: 'Plain Object', __v: 3 };
+    jest.spyOn(Event, 'findById').mockResolvedValue(plainDoc);
+
+    const result = await getEventByIdService(_id.toString());
+
+    expect(result).toBe(plainDoc);
+    expect(result.id).toBe(_id.toString());
+    expect(result.__v).toBeUndefined();
   });
 
   test('createEventService normalizes payload before persisting', async () => {
@@ -151,6 +174,47 @@ describe('eventService when MongoDB is connected', () => {
     expect(result).toMatchObject({ title: 'Created Event', id: createdDoc._id.toString() });
   });
 
+  test('createEventService trims category strings, filters blanks, and omits empty image URLs', async () => {
+    const createdDoc = createMockDoc({ title: 'Trimmed Categories' });
+    const createSpy = jest.spyOn(Event, 'create').mockResolvedValue(createdDoc);
+    const creatorId = new mongoose.Types.ObjectId().toString();
+    const isoDate = new Date().toISOString();
+
+    await createEventService({
+      creatorId,
+      title: 'Trimmed Categories',
+      location: 'Athens',
+      dateTime: isoDate,
+      category: ' music , , dance ,  ',
+      imageUrl: ''
+    });
+
+    expect(createSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: ['music', 'dance'],
+        imageUrl: undefined
+      })
+    );
+  });
+
+  test('createEventService trims category arrays and keeps non-string values intact', async () => {
+    const createdDoc = createMockDoc({ title: 'Array Categories' });
+    const createSpy = jest.spyOn(Event, 'create').mockResolvedValue(createdDoc);
+    const creatorId = new mongoose.Types.ObjectId().toString();
+
+    await createEventService({
+      creatorId,
+      title: 'Array Categories',
+      location: 'Patra',
+      dateTime: new Date().toISOString(),
+      categories: [' art ', '', 'tech', 99]
+    });
+
+    expect(createSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ category: ['art', 'tech', 99] })
+    );
+  });
+
   test('updateEventService normalizes category payloads and returns the updated event', async () => {
     const updatedDoc = createMockDoc({
       title: 'Night Vibes Reloaded',
@@ -176,6 +240,21 @@ describe('eventService when MongoDB is connected', () => {
       { new: true }
     );
     expect(result).toMatchObject({ title: 'Night Vibes Reloaded', id: eventId });
+  });
+
+  test('updateEventService removes legacy categories field and filters entries', async () => {
+    const updatedDoc = createMockDoc({ title: 'Filtered Categories' });
+    const spy = jest.spyOn(Event, 'findByIdAndUpdate').mockResolvedValue(updatedDoc);
+    const eventId = updatedDoc._id.toString();
+
+    await updateEventService(eventId, {
+      category: [' music ', '', 'tech'],
+      categories: ['should', 'not', 'persist']
+    });
+
+    const updatePayload = spy.mock.calls[0][1];
+    expect(updatePayload.category).toEqual(['music', 'tech']);
+    expect(updatePayload).not.toHaveProperty('categories');
   });
 
   test('updateEventService returns null when no document matches the id', async () => {
@@ -210,5 +289,24 @@ describe('eventService when MongoDB is connected', () => {
   test('getLikedEventsByUserService returns empty array for missing or unknown user id', async () => {
     expect(await getLikedEventsByUserService()).toEqual([]);
     expect(await getLikedEventsByUserService('some-user')).toEqual([]);
+  });
+
+  test('getLikedEventsByUserService only logs when a user id is provided', async () => {
+    const originalDebug = process.env.DEBUG_EVENTS;
+    process.env.DEBUG_EVENTS = 'true';
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await getLikedEventsByUserService();
+    expect(consoleSpy).not.toHaveBeenCalled();
+
+    await getLikedEventsByUserService('user-123');
+    expect(consoleSpy).toHaveBeenCalledWith(
+      '[EVENT_SERVICE]',
+      'getLikedEventsByUserService: called but not implemented',
+      expect.objectContaining({ userId: 'user-123' })
+    );
+
+    process.env.DEBUG_EVENTS = originalDebug;
+    consoleSpy.mockRestore();
   });
 });

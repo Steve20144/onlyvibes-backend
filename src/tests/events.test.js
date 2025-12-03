@@ -376,6 +376,36 @@ describe('Events API', () => {
     expect(res.body.message).toBe('Field "price" cannot be updated.');
   });
 
+  test('PUT /events/:id enforces trimmed title length', async () => {
+    const res = await request(app)
+      .put(`/events/${upcomingParty._id}`)
+      .send({ title: '  ab ' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('Title must be a string with at least 3 characters.');
+  });
+
+  test('PUT /events/:id rejects category arrays with non-string entries', async () => {
+    const res = await request(app)
+      .put(`/events/${upcomingParty._id}`)
+      .send({ category: ['music', 42] });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('category must be a non-empty array of strings.');
+  });
+
+  test('PUT /events/:id enforces location length requirements', async () => {
+    const res = await request(app)
+      .put(`/events/${upcomingParty._id}`)
+      .send({ location: 'A' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('Location must be a string with at least 2 characters.');
+  });
+
   test('PUT /events/:id returns 404 for missing event', async () => {
     const unknownId = new mongoose.Types.ObjectId().toString();
     const res = await request(app)
