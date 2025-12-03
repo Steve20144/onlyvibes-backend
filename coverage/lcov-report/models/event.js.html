@@ -3,15 +3,15 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for src/services/accountService.js</title>
+    <title>Code coverage report for models/event.js</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../../prettify.css" />
-    <link rel="stylesheet" href="../../base.css" />
-    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type='text/css'>
         .coverage-summary .sorter {
-            background-image: url(../../sort-arrow-sprite.png);
+            background-image: url(../sort-arrow-sprite.png);
         }
     </style>
 </head>
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">src/services</a> accountService.js</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">models</a> event.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">92.15% </span>
+                <span class="strong">36.36% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>47/51</span>
+                <span class='fraction'>8/22</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">14.28% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>15/18</span>
+                <span class='fraction'>2/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>7/7</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">92% </span>
+                <span class="strong">40% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>46/50</span>
+                <span class='fraction'>8/20</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -163,131 +163,63 @@
 <a name='L98'></a><a href='#L98'>98</a>
 <a name='L99'></a><a href='#L99'>99</a>
 <a name='L100'></a><a href='#L100'>100</a>
-<a name='L101'></a><a href='#L101'>101</a>
-<a name='L102'></a><a href='#L102'>102</a>
-<a name='L103'></a><a href='#L103'>103</a>
-<a name='L104'></a><a href='#L104'>104</a>
-<a name='L105'></a><a href='#L105'>105</a>
-<a name='L106'></a><a href='#L106'>106</a>
-<a name='L107'></a><a href='#L107'>107</a>
-<a name='L108'></a><a href='#L108'>108</a>
-<a name='L109'></a><a href='#L109'>109</a>
-<a name='L110'></a><a href='#L110'>110</a>
-<a name='L111'></a><a href='#L111'>111</a>
-<a name='L112'></a><a href='#L112'>112</a>
-<a name='L113'></a><a href='#L113'>113</a>
-<a name='L114'></a><a href='#L114'>114</a>
-<a name='L115'></a><a href='#L115'>115</a>
-<a name='L116'></a><a href='#L116'>116</a>
-<a name='L117'></a><a href='#L117'>117</a>
-<a name='L118'></a><a href='#L118'>118</a>
-<a name='L119'></a><a href='#L119'>119</a>
-<a name='L120'></a><a href='#L120'>120</a>
-<a name='L121'></a><a href='#L121'>121</a>
-<a name='L122'></a><a href='#L122'>122</a>
-<a name='L123'></a><a href='#L123'>123</a>
-<a name='L124'></a><a href='#L124'>124</a>
-<a name='L125'></a><a href='#L125'>125</a>
-<a name='L126'></a><a href='#L126'>126</a>
-<a name='L127'></a><a href='#L127'>127</a>
-<a name='L128'></a><a href='#L128'>128</a>
-<a name='L129'></a><a href='#L129'>129</a>
-<a name='L130'></a><a href='#L130'>130</a>
-<a name='L131'></a><a href='#L131'>131</a>
-<a name='L132'></a><a href='#L132'>132</a>
-<a name='L133'></a><a href='#L133'>133</a>
-<a name='L134'></a><a href='#L134'>134</a>
-<a name='L135'></a><a href='#L135'>135</a>
-<a name='L136'></a><a href='#L136'>136</a>
-<a name='L137'></a><a href='#L137'>137</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L101'></a><a href='#L101'>101</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">13x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -299,178 +231,138 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// src/services/accountService.js
-import Account from '../models/account.js';         // default export
-import { isDbConnected } from '../utils/dbHealth.js';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// src/models/event.js
+import mongoose from 'mongoose';
 &nbsp;
-const ensureDbConnected = () =&gt; {
-  if (!isDbConnected()) {
-    const err = new Error('Database not available');
-    err.statusCode = 503;
-    throw err;
+const logEventModelDebug = <span class="fstat-no" title="function not covered" >(.</span>..args) =&gt; {
+<span class="cstat-no" title="statement not covered" >  if (process.env.DEBUG_EVENTS === 'true' || process.env.DEBUG === 'true') {</span>
+<span class="cstat-no" title="statement not covered" >    console.log('[EVENT_MODEL]', ...args);</span>
   }
 };
 &nbsp;
-const ensureEmailAvailable = async (email) =&gt; {
-  const normalizedEmail = typeof email === 'string' ? email.toLowerCase() : <span class="branch-1 cbranch-no" title="branch not covered" >email;</span>
-  const existing = await Account.findOne({ email: normalizedEmail });
-&nbsp;
-  if (existing) {
-    const err = new Error('Email already in use');
-    err.statusCode = 409;
-    throw err;
-  }
+const logEventModelError = <span class="fstat-no" title="function not covered" >(.</span>..args) =&gt; {
+<span class="cstat-no" title="statement not covered" >  console.error('[EVENT_MODEL]', ...args);</span>
 };
 &nbsp;
 /**
- * Normalize a Mongoose document to a plain JS object and ensure `id` field exists.
- * In Mongo mode, we expose `_id` as `id` for the API.
- * @param {object} doc
- * @returns {object|null}
+ * Event schema – only what the UI actually needs.
  */
-const normalizeAccountDoc = (doc) =&gt; {
-  if (!doc) return null;
+const eventSchema = new mongoose.Schema(
+  {
+    // Set from auth (req.user.id), NOT from the form
+    creatorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Account',
+      required: true
+    },
 &nbsp;
-  const obj = doc.toObject ? doc.toObject() : <span class="branch-1 cbranch-no" title="branch not covered" >doc;</span>
+    title: {
+      type: String,
+      required: true,
+      trim: true
+    },
 &nbsp;
-  // Expose Mongo's _id as a top-level `id`
-  <span class="missing-if-branch" title="else path not taken" >E</span>if (obj._id &amp;&amp; !obj.id) {
-    obj.id = obj._id.toString();
+    description: {
+      type: String,
+      default: ''
+    },
+&nbsp;
+    // e.g. "Athens City Center Rooftop"
+    location: {
+      type: String,
+      required: true,
+      trim: true
+    },
+&nbsp;
+    // Selected time &amp; date from the UI
+    dateTime: {
+      type: Date,
+      required: true
+    },
+&nbsp;
+    /**
+     * “Select Categories” → allow multiple categories.
+     * Yes, it's called `category` and it's an array.
+     */
+    category: {
+      type: [String],
+      required: true,
+      validate: {
+        validator: <span class="fstat-no" title="function not covered" >(v</span>) =&gt; <span class="cstat-no" title="statement not covered" >Array.isArray(v) &amp;&amp; v.length &gt; 0,</span>
+        message: 'At least one category is required'
+      }
+    },
+&nbsp;
+    // From “Upload Photos” (optional)
+    imageUrl: {
+      type: String
+    }
+  },
+  {
+    timestamps: true // createdAt, updatedAt
   }
+);
 &nbsp;
-  delete obj.__v;
-  return obj;
-};
+// Debug hooks
+eventSchema.post('save', <span class="fstat-no" title="function not covered" >fu</span>nction (doc) {
+<span class="cstat-no" title="statement not covered" >  logEventModelDebug('Event saved', { id: doc._id?.toString(), title: doc.title });</span>
+});
 &nbsp;
-/**
- * Create a new account (user or venue).
- * @async
- * @param {{email:string,name:string,password:string,role:string,preferences?:string[],venueDetails?:object}} payload
- * @returns {Promise&lt;object&gt;}
- */
-export const createAccountService = async (payload) =&gt; {
-  const now = new Date();
+eventSchema.post('findOneAndUpdate', <span class="fstat-no" title="function not covered" >fu</span>nction (doc) {
+<span class="cstat-no" title="statement not covered" >  if (!doc) <span class="cstat-no" title="statement not covered" >return;</span></span>
+<span class="cstat-no" title="statement not covered" >  logEventModelDebug('Event updated', { id: doc._id?.toString(), title: doc.title });</span>
+});
 &nbsp;
-  ensureDbConnected();
-  await ensureEmailAvailable(payload.email);
+eventSchema.post('findOneAndDelete', <span class="fstat-no" title="function not covered" >fu</span>nction (doc) {
+<span class="cstat-no" title="statement not covered" >  if (!doc) <span class="cstat-no" title="statement not covered" >return;</span></span>
+<span class="cstat-no" title="statement not covered" >  logEventModelDebug('Event deleted', { id: doc._id?.toString(), title: doc.title });</span>
+});
 &nbsp;
-  try {
-    const doc = await Account.create({
-      username: payload.name,
-      email: payload.email,
-      password: payload.password,
-      role: payload.role,
-      isVerified: payload.role === 'venue',
-      preferences: payload.preferences || [],
-      venueDetails: payload.venueDetails || null,
-      createdAt: now,
-      updatedAt: now
-    });
-&nbsp;
-    return normalizeAccountDoc(doc);
-  } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error('createAccountService: MongoDB error:', error.message);</span>
-<span class="cstat-no" title="statement not covered" >    throw error;</span>
+// Error hook
+eventSchema.post('save', <span class="fstat-no" title="function not covered" >fu</span>nction (error, doc, next) {
+<span class="cstat-no" title="statement not covered" >  if (error) {</span>
+<span class="cstat-no" title="statement not covered" >    logEventModelError('Error during save', error);</span>
   }
-};
+<span class="cstat-no" title="statement not covered" >  next(error);</span>
+});
 &nbsp;
-/**
- * Get an account by id.
- * @async
- * @param {string} id  - In Mongo mode this is `_id`
- * @returns {Promise&lt;object|null&gt;}
- */
-export const getAccountByIdService = async (id) =&gt; {
-  ensureDbConnected();
+const Event =
+  mongoose.models.Event || mongoose.model('Event', eventSchema);
 &nbsp;
-  try {
-    const doc = await Account.findById(id);
-    return normalizeAccountDoc(doc);
-  } catch (error) {
-<span class="cstat-no" title="statement not covered" >    console.error('getAccountByIdService: MongoDB error:', error.message);</span>
-<span class="cstat-no" title="statement not covered" >    throw error;</span>
-  }
-};
-&nbsp;
-/**
- * Update an account by id.
- * @async
- * @param {string} id
- * @param {object} updates
- * @returns {Promise&lt;object|null&gt;}
- */
-export const updateAccountService = async (id, updates) =&gt; {
-  const now = new Date();
-&nbsp;
-  ensureDbConnected();
-&nbsp;
-  try {
-    const doc = await Account.findByIdAndUpdate(
-      id,
-      { ...updates, updatedAt: now },
-      { new: true, runValidators: true }
-    );
-&nbsp;
-    return normalizeAccountDoc(doc);
-  } catch (error) {
-    console.error('updateAccountService: MongoDB error:', error.message);
-    throw error;
-  }
-};
-&nbsp;
-/**
- * Delete an account by id.
- * @async
- * @param {string} id
- * @returns {Promise&lt;boolean&gt;}
- */
-export const deleteAccountService = async (id) =&gt; {
-  ensureDbConnected();
-&nbsp;
-  try {
-    const result = await Account.findByIdAndDelete(id);
-    return !!result;
-  } catch (error) {
-    console.error('deleteAccountService: MongoDB error:', error.message);
-    throw error;
-  }
-};
+export { Event };
+export default Event;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -478,16 +370,16 @@ export const deleteAccountService = async (id) =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-03T16:23:00.811Z
+                at 2025-12-02T18:06:04.745Z
             </div>
-        <script src="../../prettify.js"></script>
+        <script src="../prettify.js"></script>
         <script>
             window.onload = function () {
                 prettyPrint();
             };
         </script>
-        <script src="../../sorter.js"></script>
-        <script src="../../block-navigation.js"></script>
+        <script src="../sorter.js"></script>
+        <script src="../block-navigation.js"></script>
     </body>
 </html>
     
