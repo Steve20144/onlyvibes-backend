@@ -1,12 +1,6 @@
 // src/services/accountService.js
-import mongoose from 'mongoose';
 import Account from '../models/account.js';         // default export
-
-/**
- * Check if MongoDB is connected.
- * @returns {boolean}
- */
-const isDbConnected = () => mongoose.connection.readyState === 1;
+import { isDbConnected } from '../utils/dbHealth.js';
 
 const ensureDbConnected = () => {
   if (!isDbConnected()) {

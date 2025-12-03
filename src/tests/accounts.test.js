@@ -8,6 +8,7 @@ import {
   updateAccountService,
   deleteAccountService
 } from '../services/accountService.js';
+import dbHealth from '../utils/dbHealth.js';
 import createTestDb from './utils/testDb.js';
 
 const testDb = createTestDb();
@@ -314,7 +315,7 @@ describe('Accounts API', () => {
   });
 
   test('POST /accounts returns 503 when database is unavailable', async () => {
-    await mongoose.disconnect();
+    jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(false);
 
     const res = await request(app)
       .post('/accounts')
@@ -328,10 +329,6 @@ describe('Accounts API', () => {
     expect(res.statusCode).toBe(503);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toBe('Database not available');
-
-    await mongoose.connect(testDb.getUri());
-    await testDb.clearDatabase();
-    await seedBaseAccount();
   });
 
   test('updateAccountService surfaces database errors', async () => {

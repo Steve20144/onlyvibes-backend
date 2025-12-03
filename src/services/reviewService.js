@@ -1,9 +1,7 @@
 // src/services/reviewService.js
-import mongoose from 'mongoose';
 import Review from '../models/review.js';
 import Event from '../models/event.js';
-
-const isDbConnected = () => mongoose.connection.readyState === 1;
+import { isDbConnected } from '../utils/dbHealth.js';
 
 const normalizeReviewDoc = (doc) => {
   if (!doc) return null;

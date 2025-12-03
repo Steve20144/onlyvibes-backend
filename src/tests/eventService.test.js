@@ -9,10 +9,7 @@ import {
   deleteEventService,
   getLikedEventsByUserService
 } from '../services/eventService.js';
-
-const mockConnectionState = (state) => {
-  mongoose.connection.readyState = state;
-};
+import dbHealth from '../utils/dbHealth.js';
 
 const createMockDoc = (overrides = {}) => {
   const _id = overrides._id ?? new mongoose.Types.ObjectId();
@@ -32,25 +29,23 @@ afterEach(() => {
 });
 
 describe('eventService when MongoDB is disconnected', () => {
-  test('listEventsService returns an empty array', async () => {
-    mockConnectionState(0);
+  beforeEach(() => {
+    jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(false);
+  });
 
+  test('listEventsService returns an empty array', async () => {
     const result = await listEventsService({ category: 'music' });
 
     expect(result).toEqual([]);
   });
 
   test('getEventByIdService returns null', async () => {
-    mockConnectionState(0);
-
     const result = await getEventByIdService(new mongoose.Types.ObjectId().toString());
 
     expect(result).toBeNull();
   });
 
   test('updateEventService returns null', async () => {
-    mockConnectionState(0);
-
     const result = await updateEventService(new mongoose.Types.ObjectId().toString(), {
       title: 'Won’t update'
     });
@@ -59,16 +54,12 @@ describe('eventService when MongoDB is disconnected', () => {
   });
 
   test('deleteEventService returns false', async () => {
-    mockConnectionState(0);
-
     const result = await deleteEventService(new mongoose.Types.ObjectId().toString());
 
     expect(result).toBe(false);
   });
 
   test('createEventService rejects with a database error', async () => {
-    mockConnectionState(0);
-
     await expect(
       createEventService({
         creatorId: new mongoose.Types.ObjectId().toString(),
@@ -83,7 +74,7 @@ describe('eventService when MongoDB is disconnected', () => {
 
 describe('eventService when MongoDB is connected', () => {
   beforeEach(() => {
-    mockConnectionState(1);
+    jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(true);
   });
 
   test('listEventsService applies filters and normalizes results', async () => {

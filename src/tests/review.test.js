@@ -1,25 +1,21 @@
 // tests/review.test.js
 import request from 'supertest';
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import app from '../app.js';
 import Event from '../models/event.js';
 import Review from '../models/review.js';
+import createTestDb from './utils/testDb.js';
 
-let mongoServer;
+const testDb = createTestDb();
 let eventA;
 let eventB;
 
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  await mongoose.connect(mongoServer.getUri());
+  await testDb.connect();
 });
 
 afterAll(async () => {
-  await mongoose.disconnect();
-  if (mongoServer) {
-    await mongoServer.stop();
-  }
+  await testDb.disconnect();
 });
 
 beforeEach(async () => {

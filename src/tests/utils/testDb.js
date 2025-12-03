@@ -7,22 +7,35 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 export const createTestDb = () => {
   let mongoServer = null;
   let mongoUri = '';
+  let isConnected = false;
+
+  const ensureServer = async () => {
+    if (!mongoServer) {
+      mongoServer = await MongoMemoryServer.create();
+      mongoUri = mongoServer.getUri();
+    }
+  };
 
   return {
     /**
      * Spin up mongodb-memory-server and connect mongoose to it.
      */
     async connect() {
-      mongoServer = await MongoMemoryServer.create();
-      mongoUri = mongoServer.getUri();
+      await ensureServer();
+
+      if (isConnected && mongoose.connection.readyState === 1) {
+        return;
+      }
+
       await mongoose.connect(mongoUri);
+      isConnected = true;
     },
 
     /**
      * Drop all documents from every collection.
      */
     async clearDatabase() {
-      if (!mongoose.connection?.collections) return;
+      if (!isConnected || !mongoose.connection?.collections) return;
 
       const deletionJobs = Object.values(mongoose.connection.collections).map(
         (collection) => collection.deleteMany({})
@@ -35,11 +48,15 @@ export const createTestDb = () => {
      * Disconnect mongoose and stop the in-memory server.
      */
     async disconnect() {
-      await mongoose.disconnect();
+      if (isConnected) {
+        await mongoose.disconnect();
+        isConnected = false;
+      }
 
       if (mongoServer) {
         await mongoServer.stop();
         mongoServer = null;
+        mongoUri = '';
       }
     },
 
