@@ -1,6 +1,5 @@
 // src/tests/accounts.test.js
 import request from 'supertest';
-import mongoose from 'mongoose';
 import { jest } from '@jest/globals';
 import app from '../app.js';
 import Account from '../models/account.js';
@@ -12,6 +11,7 @@ import dbHealth from '../utils/dbHealth.js';
 import createTestDb from './utils/testDb.js';
 
 const testDb = createTestDb();
+const mongoose = testDb.getMongoose();
 let baseAccount;
 const seedBaseAccount = async () => {
   baseAccount = await Account.create({

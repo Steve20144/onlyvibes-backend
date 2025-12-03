@@ -1,12 +1,12 @@
 // src/tests/events.test.js
 import request from 'supertest';
-import mongoose from 'mongoose';
 import app from '../app.js';
 import Event from '../models/event.js';
 import Account from '../models/account.js';
 import createTestDb from './utils/testDb.js';
 
 const testDb = createTestDb();
+const mongoose = testDb.getMongoose();
 let creatorAccount;
 let upcomingParty;
 let yogaSession;

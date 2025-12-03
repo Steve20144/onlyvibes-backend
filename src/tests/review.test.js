@@ -1,12 +1,12 @@
 // tests/review.test.js
 import request from 'supertest';
-import mongoose from 'mongoose';
 import app from '../app.js';
 import Event from '../models/event.js';
 import Review from '../models/review.js';
 import createTestDb from './utils/testDb.js';
 
 const testDb = createTestDb();
+const mongoose = testDb.getMongoose();
 let eventA;
 let eventB;
 

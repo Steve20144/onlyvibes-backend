@@ -3,11 +3,12 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 
 /**
  * Factory to create an isolated in-memory MongoDB instance per test suite.
+ * Optionally accepts a dedicated mongoose instance for advanced scenarios.
  */
-export const createTestDb = () => {
+export const createTestDb = ({ mongooseInstance } = {}) => {
+  const suiteMongoose = mongooseInstance ?? mongoose;
   let mongoServer = null;
   let mongoUri = '';
-  let isConnected = false;
 
   const ensureServer = async () => {
     if (!mongoServer) {
@@ -23,21 +24,20 @@ export const createTestDb = () => {
     async connect() {
       await ensureServer();
 
-      if (isConnected && mongoose.connection.readyState === 1) {
+      if (suiteMongoose.connection?.readyState === 1) {
         return;
       }
 
-      await mongoose.connect(mongoUri);
-      isConnected = true;
+      await suiteMongoose.connect(mongoUri);
     },
 
     /**
      * Drop all documents from every collection.
      */
     async clearDatabase() {
-      if (!isConnected || !mongoose.connection?.collections) return;
+      if (suiteMongoose.connection?.readyState !== 1) return;
 
-      const deletionJobs = Object.values(mongoose.connection.collections).map(
+      const deletionJobs = Object.values(suiteMongoose.connection.collections).map(
         (collection) => collection.deleteMany({})
       );
 
@@ -48,9 +48,8 @@ export const createTestDb = () => {
      * Disconnect mongoose and stop the in-memory server.
      */
     async disconnect() {
-      if (isConnected) {
-        await mongoose.disconnect();
-        isConnected = false;
+      if (suiteMongoose.connection?.readyState && suiteMongoose.connection.readyState !== 0) {
+        await suiteMongoose.disconnect();
       }
 
       if (mongoServer) {
@@ -65,6 +64,13 @@ export const createTestDb = () => {
      */
     getUri() {
       return mongoUri;
+    },
+
+    /**
+     * Return the mongoose instance backing this helper.
+     */
+    getMongoose() {
+      return suiteMongoose;
     }
   };
 };
