@@ -9,7 +9,7 @@ Express 5 + MongoDB implementation that powers the OnlyVibes MVP. The codebase c
 - **Web:** Express 5, CORS, custom logging middleware via `debug`
 - **Database:** MongoDB (Atlas or local) on top of Mongoose 8
 - **Auth:** JWT (HS256) + bcrypt hashing, optional bearer middleware
-- **Tests:** Jest 30, Supertest, mongodb-memory-server for isolated DBs
+- **Tests:** Jest 30, Supertest, mongodb-memory-server for isolated DBs, Stryker
 
 ---
 
