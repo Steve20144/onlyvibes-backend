@@ -114,15 +114,6 @@ DEBUG=onlyvibes:req,onlyvibes:error npm run dev
 DEBUG_EVENTS=true npm run dev
 ```
 
----
-
-## Testing
-- `npm test` runs Jest in ESM mode (`node --experimental-vm-modules`).
-- Each suite provisions its own in-memory Mongo via `mongodb-memory-server`, so there is no dependency on an external database.
-- Supertest exercises the Express app end-to-end (controllers ↔ services ↔ models), while unit-level tests validate service error paths.
-
----
-
 ## Project Structure
 ```
 config/
@@ -143,187 +134,22 @@ docs/
 └── swaggerfile.json     # Source Swagger/OpenAPI document for the course
 ```
 
-## Tests in the CI
+## Testing & Coverage
+- **Tooling:** Jest 30 drives the suites with `supertest` for HTTP assertions and `mongodb-memory-server` for fully isolated databases per file. Everything runs in native ESM mode (`node --experimental-vm-modules`).
+- **Running locally:** `npm test` executes the full matrix; append `-- --coverage` to refresh Istanbul output in `coverage/`. No external Mongo instance is required.
+- **Coverage expectations:** All feature areas maintain ≥80% statements/branches/functions/lines. Services normalize Mongoose documents (`_id` → `id`) and log guarded errors so regressions surface quickly.
+- **Continuous integration:** The GitHub workflow runs the same command plus linting, blocking merges if any suite fails or coverage regresses.
 
-### Primary Tests
+### CI Test Matrix
+| Suite | What it covers | Representative specs |
+| --- | --- | --- |
+| Accounts API | Happy-path CRUD plus validation, duplicate protection, and DB outage handling. | `src/tests/accounts.test.js` |
+| Events API | Filters, payload normalization, controller guards, model hooks, and service fallbacks. | `src/tests/events.test.js`, `eventController.unit.test.js`, `eventModelHooks.test.js`, `eventService.test.js` |
+| Reviews API | Endpoint flows, duplicate review prevention, aggregation helpers, and service edge cases. | `src/tests/review.test.js`, `reviewService.test.js` |
+| Auth & Infrastructure | Signup/login flows, JWT middleware, health/404/error handlers, server bootstrap. | `src/tests/auth.test.js`, `authMiddleware.test.js`, `appMisc.test.js`, `server.bootstrap.test.js` |
+| Platform Utilities | Database helpers, health probes, and in-memory Mongo scaffolding used by every suite. | `src/tests/database.test.js`, `dbHealth.test.js`, `createTestDb.test.js` |
 
-#### Accounts API
-- [x] POST /accounts creates a new user account (213 ms)
-- [x] POST /accounts fails with invalid email (10 ms)
-- [x] POST /accounts fails with missing name (8 ms)
-- [x] POST /accounts fails when password is shorter than 4 chars (9 ms)
-- [x] POST /accounts fails with missing or invalid role (10 ms)
-- [x] POST /accounts creates a venue account with venue details (13 ms)
-- [x] POST /accounts rejects duplicate emails (11 ms)
-- [x] GET /accounts/:id returns an existing account (10 ms)
-- [x] GET /accounts/:id returns 404 for unknown id (8 ms)
-- [x] PUT /accounts/:id updates an account (12 ms)
-- [x] DELETE /accounts/:id removes an account (12 ms)
-- [x] PUT /accounts/:id returns 404 when account is missing (8 ms)
-- [x] PUT /accounts/:id fails with empty body (7 ms)
-- [x] PUT /accounts/:id rejects unknown fields (7 ms)
-- [x] PUT /accounts/:id enforces username length (5 ms)
-- [x] PUT /accounts/:id validates preferences array (6 ms)
-- [x] PUT /accounts/:id validates venueDetails object (6 ms)
-- [x] PUT /accounts/:id validates isVerified type (6 ms)
-- [x] PUT /accounts/:id rejects non-object payloads (6 ms)
-- [x] PUT /accounts/:id rejects invalid role updates (6 ms)
-- [x] DELETE /accounts/:id returns 404 when account is missing (6 ms)
-- [x] POST /accounts returns 503 when database is unavailable (7 ms)
-- [x] updateAccountService surfaces database errors (5 ms)
-- [x] updateAccountService normalizes the updated document on success (4 ms)
-- [x] deleteAccountService surfaces database errors (4 ms)
-- [x] deleteAccountService returns true when a document is deleted and false otherwise (4 ms)
-
-#### App Infrastructure Endpoints
-- [x] GET /health returns service heartbeat payload (24 ms)
-- [x] request logging middleware masks sensitive fields before logging (19 ms)
-- [x] unknown routes trigger the JSON 404 handler (3 ms)
-- [x] centralized error handler surfaces status, message, and details (22 ms)
-
-#### Auth API
-- [x] POST /auth/signup fails with missing fields (33 ms)
-- [x] POST /auth/signup persists user and returns JWT (95 ms)
-- [x] POST /auth/signup rejects duplicate emails (92 ms)
-- [x] POST /auth/login authenticates valid credentials (147 ms)
-- [x] POST /auth/login rejects invalid credentials (119 ms)
-
-#### authenticate middleware
-- [x] returns 401 when Authorization header is missing (11 ms)
-- [x] returns 401 when Authorization header format is invalid (2 ms)
-- [x] returns 401 when token is invalid (17 ms)
-- [x] calls next and attaches user when token is valid (16 ms)
-
-#### connectDB
-- [x] exits immediately when MONGO_URI is missing (5 ms)
-- [x] connects and logs success when MONGO_URI is present (2 ms)
-- [x] logs the error and exits when mongoose.connect rejects (2 ms)
-
-#### dbHealth.isDbConnected
-- [x] returns true only when readyState equals 1 (3 ms)
-
-#### Events API
-- [x] GET /events returns persisted events (211 ms)
-- [x] GET /events filters by category (16 ms)
-- [x] GET /events filters by location substring (case-insensitive) (14 ms)
-- [x] GET /events filters by category and location simultaneously (17 ms)
-- [x] GET /events with filters that match nothing returns friendly message (13 ms)
-- [x] GET /events with location filter and no results uses friendly message (13 ms)
-- [x] GET /events/:id returns the requested event (14 ms)
-- [x] GET /events returns "No events found." when there are no events (13 ms)
-- [x] GET /events/:id with invalid id format returns 400 (33 ms)
-- [x] GET /events/:id with missing event returns 404 (16 ms)
-- [x] POST /events requires a valid creatorId (32 ms)
-- [x] POST /events persists a new event when payload is valid (15 ms)
-- [x] POST /events defaults missing description to empty string (14 ms)
-- [x] POST /events rejects missing title (21 ms)
-- [x] POST /events rejects empty categories array (17 ms)
-- [x] POST /events normalizes category string input (14 ms)
-- [x] PUT /events/:id updates editable fields (15 ms)
-- [x] PUT /events/:id validates malformed dateTime (17 ms)
-- [x] PUT /events/:id rejects empty payloads (14 ms)
-- [x] PUT /events/:id allows null description by storing empty string (13 ms)
-- [x] PUT /events/:id rejects non-string description values (14 ms)
-- [x] PUT /events/:id accepts comma-separated category strings (12 ms)
-- [x] PUT /events/:id rejects invalid imageUrl types (16 ms)
-- [x] PUT /events/:id updates dateTime when provided a valid ISO string (13 ms)
-- [x] PUT /events/:id rejects unknown fields (14 ms)
-- [x] PUT /events/:id enforces trimmed title length (14 ms)
-- [x] PUT /events/:id rejects category arrays with non-string entries (13 ms)
-- [x] PUT /events/:id enforces location length requirements (15 ms)
-- [x] PUT /events/:id returns 404 for missing event (12 ms)
-- [x] PUT /events/:id with invalid id returns 400 (12 ms)
-- [x] DELETE /events/:id removes an existing event (12 ms)
-- [x] DELETE /events/:id with invalid id returns 400 (16 ms)
-- [x] DELETE /events/:id returns 404 for missing event (12 ms)
-- [x] GET /events/liked/:userId returns placeholder data set (9 ms)
-
-#### Reviews API
-- [x] GET /events/:eventId/reviews returns reviews for event (217 ms)
-- [x] GET /events/:eventId/reviews returns friendly message when no reviews exist (20 ms)
-- [x] GET /events/:eventId/reviews validates the event id parameter (14 ms)
-- [x] GET /events/:eventId/reviews returns 404 when the event does not exist (13 ms)
-- [x] POST /events/:eventId/reviews creates a review (26 ms)
-- [x] POST /events/:eventId/reviews rejects duplicates (15 ms)
-- [x] POST /events/:eventId/reviews requires a valid accountId (12 ms)
-- [x] POST /events/:eventId/reviews enforces rating boundaries (12 ms)
-- [x] POST /events/:eventId/reviews returns 404 when event is missing (14 ms)
-- [x] GET /events/:eventId/reviews/:reviewId returns single review (16 ms)
-- [x] GET /events/:eventId/reviews/:reviewId validates the review id parameter (10 ms)
-- [x] GET /events/:eventId/reviews/:reviewId returns 404 when review is missing (12 ms)
-- [x] PUT /events/:eventId/reviews/:reviewId updates rating (18 ms)
-- [x] PUT /events/:eventId/reviews/:reviewId enforces rating boundaries (12 ms)
-- [x] PUT /events/:eventId/reviews/:reviewId returns 404 when review is missing (15 ms)
-- [x] PUT /events/:eventId/reviews/:reviewId replaces mediaUrls when provided as an array (17 ms)
-- [x] DELETE /events/:eventId/reviews/:reviewId removes review (20 ms)
-- [x] DELETE /events/:eventId/reviews/:reviewId returns 404 when review is missing (13 ms)
-- [x] GET /accounts/:accountId/reviewed-events returns summary (18 ms)
-- [x] GET /accounts/:accountId/reviewed-events returns friendly message when no reviews exist (13 ms)
-- [x] listReviewedEventsForAccount requires the accountId parameter (10 ms)
-
-#### server bootstrap
-- [x] connects to the database and listens on the default port (12 ms)
-- [x] honors the PORT environment variable (4 ms)
-
-### Secondary Tests
-
-#### createTestDb helper
-- [x] connect only spins up the MongoMemoryServer once (4 ms)
-- [x] clearDatabase exits early when mongoose is disconnected (1 ms)
-
-#### eventController validation helpers
-- [x] listLikedEvents rejects missing userId parameters (4 ms)
-- [x] updateEvent rejects non-object payloads before hitting service (2 ms)
-
-#### Event model hooks
-- [x] save hook logs only when debug flags are enabled and always includes metadata (4 ms)
-- [x] save hook tolerates missing IDs when logging (2 ms)
-- [x] findOneAndUpdate hook guards against missing docs and logs payload metadata (1 ms)
-- [x] findOneAndDelete hook only logs when a doc exists and uses safe id access (1 ms)
-- [x] save error hook logs failures and forwards the error (1 ms)
-
-#### eventService when MongoDB is disconnected
-- [x] listEventsService returns an empty array (4 ms)
-- [x] getEventByIdService returns null (1 ms)
-- [x] updateEventService returns null (1 ms)
-- [x] deleteEventService returns false (0 ms)
-- [x] createEventService rejects with a database error (19 ms)
-
-#### eventService when MongoDB is connected
-- [x] listEventsService applies filters and normalizes results (2 ms)
-- [x] listEventsService assigns "id" and removes __v from normalized docs (1 ms)
-- [x] getEventByIdService returns a normalized document (1 ms)
-- [x] getEventByIdService returns null when document is missing (7 ms)
-- [x] getEventByIdService normalizes plain objects without toObject() (1 ms)
-- [x] createEventService normalizes payload before persisting (1 ms)
-- [x] createEventService trims category strings, filters blanks, and omits empty image URLs (0 ms)
-- [x] createEventService trims category arrays and keeps non-string values intact (0 ms)
-- [x] updateEventService normalizes category payloads and returns the updated event (0 ms)
-- [x] updateEventService removes legacy categories field and filters entries (0 ms)
-- [x] updateEventService returns null when no document matches the id (0 ms)
-- [x] deleteEventService returns true when a document is removed (1 ms)
-- [x] deleteEventService returns false when no document is removed (1 ms)
-- [x] getLikedEventsByUserService returns empty array for missing or unknown user id (0 ms)
-- [x] getLikedEventsByUserService only logs when a user id is provided (0 ms)
-
-#### reviewService edge cases
-- [x] createReviewService throws when the database is unavailable (9 ms)
-
-#### deleteReviewService
-- [x] returns false when the database is unavailable (3 ms)
-- [x] returns true only when a document is deleted (1 ms)
-
-#### getReviewedEventsByAccountService
-- [x] database guard clauses { name: 'ensureEventExistsService', fn: [Function: fn], expected: null, spyFactory: [Function: spyFactory] } returns a fallback when Mongo is disconnected (1 ms)
-- [x] database guard clauses { name: 'getReviewsByEventIdService', fn: [Function: fn], expected: [], spyFactory: [Function: spyFactory] } returns a fallback when Mongo is disconnected (1 ms)
-- [x] database guard clauses { name: 'getReviewByIdService', fn: [Function: fn], expected: null, spyFactory: [Function: spyFactory] } returns a fallback when Mongo is disconnected (1 ms)
-- [x] database guard clauses { name: 'getReviewByEventAndAccountService', fn: [Function: fn], expected: null, spyFactory: [Function: spyFactory] } returns a fallback when Mongo is disconnected (0 ms)
-- [x] database guard clauses { name: 'updateReviewService', fn: [Function: fn], expected: null, spyFactory: [Function: spyFactory] } returns a fallback when Mongo is disconnected (1 ms)
-- [x] getReviewByEventAndAccountService normalizes plain objects without mongoose helpers (1 ms)
-- [x] createReviewService fills in optional fields when missing (2 ms)
-- [x] returns empty array when the database is unavailable (1 ms)
-- [x] returns empty array when no reviews exist for the account (0 ms)
-- [x] summarizes reviews even when event metadata is missing (1 ms)
+Each suite seeds its own fixtures, masks secrets in logs, and leaves the database state isolated so tests can be run in parallel without interference.
 
 ---
 
