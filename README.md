@@ -316,7 +316,7 @@ docs/
 ---
 
 ## Swagger & Status
-- The endpoints above match the Παροδοτέο 1 Swagger located at `docs/swaggerfile.json` for Accounts, Events, and Reviews. Auth was added to unblock the frontend even though it is outside the original spec.
+- The endpoints above match the 1st Deliverable Swagger located at `docs/swaggerfile.json` for Accounts, Events, and Reviews. Auth was added to unblock the frontend even though it is outside the original spec.
 - Features still pending from the specification (verification requests, reminders, follows, recommendations, global search) remain backlog items and are not exposed by the current code.
 - Keep the spec in sync with future changes so graders can diff the API surface.
 
