@@ -352,6 +352,44 @@ describe('Accounts API', () => {
     consoleSpy.mockRestore();
   });
 
+  test('updateAccountService normalizes the updated document on success', async () => {
+    jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(true);
+
+    const updatedDoc = {
+      _id: new mongoose.Types.ObjectId(),
+      username: 'patched-name',
+      __v: 0
+    };
+    updatedDoc.toObject = jest.fn().mockReturnValue({
+      _id: updatedDoc._id,
+      username: 'patched-name',
+      __v: 0
+    });
+
+    const spy = jest
+      .spyOn(Account, 'findByIdAndUpdate')
+      .mockResolvedValue(updatedDoc);
+
+    const result = await updateAccountService(updatedDoc._id.toString(), {
+      username: 'patched-name'
+    });
+
+    expect(spy).toHaveBeenCalledWith(
+      updatedDoc._id.toString(),
+      expect.objectContaining({
+        username: 'patched-name',
+        updatedAt: expect.any(Date)
+      }),
+      { new: true, runValidators: true }
+    );
+    expect(updatedDoc.toObject).toHaveBeenCalled();
+    expect(result).toMatchObject({
+      username: 'patched-name',
+      id: expect.any(String)
+    });
+    expect(result).not.toHaveProperty('__v');
+  });
+
   test('deleteAccountService surfaces database errors', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const spy = jest.spyOn(Account, 'findByIdAndDelete').mockImplementation(() => {
@@ -365,5 +403,21 @@ describe('Accounts API', () => {
     expect(spy).toHaveBeenCalledWith(baseAccount._id.toString());
 
     consoleSpy.mockRestore();
+  });
+
+  test('deleteAccountService returns true when a document is deleted and false otherwise', async () => {
+    jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(true);
+    const doc = { _id: new mongoose.Types.ObjectId() };
+    const spy = jest
+      .spyOn(Account, 'findByIdAndDelete')
+      .mockResolvedValueOnce(doc)
+      .mockResolvedValueOnce(null);
+
+    const success = await deleteAccountService(doc._id.toString());
+    const failure = await deleteAccountService(doc._id.toString());
+
+    expect(success).toBe(true);
+    expect(failure).toBe(false);
+    expect(spy).toHaveBeenCalledTimes(2);
   });
 });
