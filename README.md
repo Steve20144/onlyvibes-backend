@@ -89,6 +89,18 @@ Express 5 + MongoDB implementation that powers the OnlyVibes MVP. The codebase c
 
 > Use `src/middleware/auth.js` to protect future routes. It expects an `Authorization: Bearer <token>` header and populates `req.user` when verification succeeds.
 
+## Status Code Semantics
+| Status | What it represents | Representative tests & endpoints |
+| --- | --- | --- |
+| 200 OK | Successful reads/updates/deletes, even when the payload is empty but the request was valid. Used for health checks, log masking middleware, login success, listing resources, fetching details, friendly “no data” responses, successful updates/deletes. | `src/tests/appMisc.test.js` (`GET /health`, unknown route handler), `src/tests/auth.test.js` (`POST /auth/login`), `src/tests/accounts.test.js` (`GET/PUT/DELETE /accounts/:id`), `src/tests/events.test.js` (various `GET/PUT/DELETE /events...`), `src/tests/review.test.js` (most `GET/PUT/DELETE` combos) |
+| 201 Created | Resource persisted successfully: accounts, auth signup, events, reviews. Responses include `success: true`, the created entity, and a success message. | `src/tests/accounts.test.js`, `src/tests/auth.test.js`, `src/tests/events.test.js`, `src/tests/review.test.js` (all `POST` cases) |
+| 400 Bad Request | Client input/shape errors: invalid/missing fields, malformed IDs, empty payloads, wrong data types, out-of-range values, non-object bodies. Middleware also raises 400 before services run. | Validation suites across `accounts.test.js`, `auth.test.js`, `events.test.js`, `review.test.js`, plus controller helpers such as `eventController.unit.test.js` |
+| 401 Unauthorized | Authentication failures: missing/incorrect Authorization headers or invalid credentials. Bodies explain the auth issue and prevent downstream logic. | `auth.test.js` (bad login), `authMiddleware.test.js` (missing header, wrong scheme, bad token) |
+| 404 Not Found | Route or resource absent: unknown account/event/review IDs, deleted resources, unmatched routes. Responses keep `success: false`, `data: null`, and an explanatory message. | `accounts.test.js`, `events.test.js`, `review.test.js`, `appMisc.test.js` |
+| 409 Conflict | Unique constraint violations (e.g., duplicate emails or duplicate reviews per account/event). Signals callers to resolve the conflict before retrying. | `accounts.test.js`, `auth.test.js`, `review.test.js` |
+| 418 Custom error passthrough | Controllers/services can throw errors with custom `statusCode`; the centralized handler returns them unchanged, preserving details. | `appMisc.test.js` (mocked service failure returned as 418) |
+| 503 Service Unavailable | Database connectivity problems detected via `dbHealth`. Requests short-circuit with “Database not available.” | `accounts.test.js` (`POST /accounts` when DB is down); similar guards in `eventService.test.js`, `reviewService.test.js` |
+
 ---
 
 ## Logging & Debugging
@@ -316,7 +328,7 @@ docs/
 ---
 
 ## Swagger & Status
-- The endpoints above match the 1st Deliverable Swagger located at `docs/swaggerfile.json` for Accounts, Events, and Reviews. Auth was added to unblock the frontend even though it is outside the original spec.
+- The endpoints above match the Παροδοτέο 1 Swagger located at `docs/swaggerfile.json` for Accounts, Events, and Reviews. Auth was added to unblock the frontend even though it is outside the original spec.
 - Features still pending from the specification (verification requests, reminders, follows, recommendations, global search) remain backlog items and are not exposed by the current code.
 - Keep the spec in sync with future changes so graders can diff the API surface.
 
