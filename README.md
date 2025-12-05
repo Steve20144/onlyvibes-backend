@@ -139,6 +139,7 @@ docs/
 - **Running locally:** `npm test` executes the full matrix; append `-- --coverage` to refresh Istanbul output in `coverage/`. No external Mongo instance is required.
 - **Coverage expectations:** All feature areas maintain ≥80% statements/branches/functions/lines. Services normalize Mongoose documents (`_id` → `id`) and log guarded errors so regressions surface quickly.
 - **Continuous integration:** The GitHub workflow runs the same command plus linting, blocking merges if any suite fails or coverage regresses.
+- **Deep-dive report:** [`Coverage.txt`](docs/Coverage.txt) summarizes the 140+ Jest scenarios with notes per suite so reviewers can trace every assertion.
 
 ### CI Test Matrix
 | Suite | What it covers | Representative specs |
@@ -150,6 +151,12 @@ docs/
 | Platform Utilities | Database helpers, health probes, and in-memory Mongo scaffolding used by every suite. | `src/tests/database.test.js`, `dbHealth.test.js`, `createTestDb.test.js` |
 
 Each suite seeds its own fixtures, masks secrets in logs, and leaves the database state isolated so tests can be run in parallel without interference.
+
+---
+
+### Test Suite Types
+- **Supertest integration suites** (`accounts.test.js`, `appMisc.test.js`, `auth.test.js`, `events.test.js`, `review.test.js`): import `supertest`, boot the real Express app, and issue HTTP requests against the in-memory MongoDB to verify controllers, services, and models end-to-end.
+- **Unit-style suites** (`authMiddleware.test.js`, `createTestDb.test.js`, `database.test.js`, `dbHealth.test.js`, `eventController.unit.test.js`, `eventModelHooks.test.js`, `eventService.test.js`, `reviewService.test.js`, `server.bootstrap.test.js`): mock dependencies and validate individual modules (middleware, helpers, services, bootstrap) without exercising the HTTP layer.
 
 ---
 

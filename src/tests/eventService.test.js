@@ -103,6 +103,36 @@ describe('eventService when MongoDB is connected', () => {
     });
   });
 
+  test('listEventsService builds a case-insensitive regex for location-only filters', async () => {
+    const docs = [
+      createMockDoc({
+        title: 'Patra Street Food',
+        location: 'Patra'
+      })
+    ];
+    const sortMock = jest.fn().mockResolvedValue(docs);
+    const findSpy = jest.spyOn(Event, 'find').mockReturnValue({ sort: sortMock });
+
+    const result = await listEventsService({ location: 'PA' });
+
+    expect(findSpy).toHaveBeenCalledWith({ location: expect.any(RegExp) });
+    const queryArg = findSpy.mock.calls[0][0];
+    expect(queryArg).not.toHaveProperty('category');
+    const regex = queryArg.location;
+    expect(regex).toBeInstanceOf(RegExp);
+    expect(regex.flags).toContain('i');
+    expect(regex.test('patra')).toBe(true);
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe('Patra Street Food');
+  });
+
+  test('listEventsService surfaces database errors from Event.find', async () => {
+    const sortMock = jest.fn().mockRejectedValue(new Error('find failed'));
+    jest.spyOn(Event, 'find').mockReturnValue({ sort: sortMock });
+
+    await expect(listEventsService()).rejects.toThrow('find failed');
+  });
+
   test('listEventsService assigns "id" and removes __v from normalized docs', async () => {
     const doc = createMockDoc({ title: 'Normalized Event', __v: 7 });
     const sortMock = jest.fn().mockResolvedValue([doc]);
@@ -267,6 +297,31 @@ describe('eventService when MongoDB is connected', () => {
     expect(result).toBeNull();
   });
 
+  test('updateEventService leaves category untouched when none is provided', async () => {
+    const updatedDoc = createMockDoc({ title: 'Plain Update' });
+    const spy = jest.spyOn(Event, 'findByIdAndUpdate').mockResolvedValue(updatedDoc);
+    const eventId = updatedDoc._id.toString();
+    const updates = { title: 'Plain Update' };
+
+    await updateEventService(eventId, updates);
+
+    expect(spy).toHaveBeenCalledWith(eventId, expect.objectContaining(updates), {
+      new: true
+    });
+    const updatePayload = spy.mock.calls[0][1];
+    expect(updatePayload).not.toHaveProperty('category');
+    expect(updatePayload).not.toHaveProperty('categories');
+  });
+
+  test('updateEventService surfaces database errors', async () => {
+    const error = new Error('update failed');
+    jest.spyOn(Event, 'findByIdAndUpdate').mockRejectedValue(error);
+
+    await expect(
+      updateEventService(new mongoose.Types.ObjectId().toString(), { title: 'Boom' })
+    ).rejects.toThrow('update failed');
+  });
+
   test('deleteEventService returns true when a document is removed', async () => {
     const deletedDoc = createMockDoc({ title: 'To Be Deleted' });
     const spy = jest.spyOn(Event, 'findByIdAndDelete').mockResolvedValue(deletedDoc);
@@ -284,6 +339,15 @@ describe('eventService when MongoDB is connected', () => {
     const result = await deleteEventService(new mongoose.Types.ObjectId().toString());
 
     expect(result).toBe(false);
+  });
+
+  test('deleteEventService surfaces database errors', async () => {
+    const error = new Error('delete failed');
+    jest.spyOn(Event, 'findByIdAndDelete').mockRejectedValue(error);
+
+    await expect(
+      deleteEventService(new mongoose.Types.ObjectId().toString())
+    ).rejects.toThrow('delete failed');
   });
 
   test('getLikedEventsByUserService returns empty array for missing or unknown user id', async () => {
