@@ -139,7 +139,7 @@ docs/
 - **Running locally:** `npm test` executes the full matrix; append `-- --coverage` to refresh Istanbul output in `coverage/`. No external Mongo instance is required.
 - **Coverage expectations:** All feature areas maintain ≥80% statements/branches/functions/lines. Services normalize Mongoose documents (`_id` → `id`) and log guarded errors so regressions surface quickly.
 - **Continuous integration:** The GitHub workflow runs the same command plus linting, blocking merges if any suite fails or coverage regresses.
-- **Deep-dive report:** [`Coverage.txt`](docs/Coverage.md) summarizes the 140+ Jest scenarios with notes per suite so reviewers can trace every assertion.
+- **Deep-dive report:** [`Coverage.md`](docs/Coverage.md) summarizes the 140+ Jest scenarios with notes per suite so reviewers can trace every assertion.
 
 ### CI Test Matrix
 | Suite | What it covers | Representative specs |
