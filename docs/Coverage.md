@@ -117,12 +117,6 @@ server bootstrap
 ✓ connects to the database and listens on the default port (12 ms)
 ✓ honors the PORT environment variable (4 ms)
 
-
-
-
-
-
-
 ---------------------------------------------------------------------------------------------------
 
 Secondary Tests
@@ -173,36 +167,11 @@ deleteReviewService
 ✓ returns true only when a document is deleted (1 ms)
 
 getReviewedEventsByAccountService
-✓ database guard clauses {
-  name: 'ensureEventExistsService',
-  fn: [Function: fn],
-  expected: null,
-  spyFactory: [Function: spyFactory]
-} returns a fallback when Mongo is disconnected (1 ms)
-✓ database guard clauses {
-  name: 'getReviewsByEventIdService',
-  fn: [Function: fn],
-  expected: [],
-  spyFactory: [Function: spyFactory]
-} returns a fallback when Mongo is disconnected (1 ms)
-✓ database guard clauses {
-  name: 'getReviewByIdService',
-  fn: [Function: fn],
-  expected: null,
-  spyFactory: [Function: spyFactory]
-} returns a fallback when Mongo is disconnected (1 ms)
-✓ database guard clauses {
-  name: 'getReviewByEventAndAccountService',
-  fn: [Function: fn],
-  expected: null,
-  spyFactory: [Function: spyFactory]
-} returns a fallback when Mongo is disconnected (0 ms)
-✓ database guard clauses {
-  name: 'updateReviewService',
-  fn: [Function: fn],
-  expected: null,
-  spyFactory: [Function: spyFactory]
-} returns a fallback when Mongo is disconnected (1 ms)
+✓ database guard clauses { name: 'ensureEventExistsService', fn: [Function: fn], expected: null, spyFactory: [Function: spyFactory] } returns a fallback when Mongo is disconnected (1 ms)
+✓ database guard clauses { name: 'getReviewsByEventIdService', fn: [Function: fn], expected: [], spyFactory: [Function: spyFactory] } returns a fallback when Mongo is disconnected (1 ms)
+✓ database guard clauses { name: 'getReviewByIdService', fn: [Function: fn], expected: null, spyFactory: [Function: spyFactory] } returns a fallback when Mongo is disconnected (1 ms)
+✓ database guard clauses { name: 'getReviewByEventAndAccountService', fn: [Function: fn], expected: null, spyFactory: [Function: spyFactory] } returns a fallback when Mongo is disconnected (0 ms)
+✓ database guard clauses { name: 'updateReviewService', fn: [Function: fn], expected: null, spyFactory: [Function: spyFactory] } returns a fallback when Mongo is disconnected (1 ms)
 ✓ getReviewByEventAndAccountService normalizes plain objects without mongoose helpers (1 ms)
 ✓ createReviewService fills in optional fields when missing (2 ms)
 ✓ returns empty array when the database is unavailable (1 ms)
