@@ -1,6 +1,6 @@
 // src/services/eventService.js
-import mongoose from 'mongoose';
 import Event from '../models/event.js';
+import { isDbConnected } from '../utils/dbHealth.js';
 
 const logEventServiceDebug = (...args) => {
   if (process.env.DEBUG_EVENTS === 'true' || process.env.DEBUG === 'true') {
@@ -11,12 +11,6 @@ const logEventServiceDebug = (...args) => {
 const logEventServiceError = (...args) => {
   console.error('[EVENT_SERVICE]', ...args);
 };
-
-/**
- * Check if MongoDB is connected.
- * @returns {boolean}
- */
-const isDbConnected = () => mongoose.connection.readyState === 1;
 
 /**
  * Normalize a Mongoose document to a plain JS object and ensure `id` field exists.

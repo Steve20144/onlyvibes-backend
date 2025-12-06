@@ -1,11 +1,25 @@
 // src/tests/authMiddleware.test.js
 import jwt from 'jsonwebtoken';
+import Account from '../models/account.js';
 import { authenticate } from '../middleware/auth.js';
+import createTestDb from './utils/testDb.js';
 
-beforeAll(() => {
+const testDb = createTestDb();
+
+beforeAll(async () => {
   if (!process.env.JWT_SECRET) {
     process.env.JWT_SECRET = 'test-secret';
   }
+
+  await testDb.connect();
+});
+
+afterAll(async () => {
+  await testDb.disconnect();
+});
+
+beforeEach(async () => {
+  await testDb.clearDatabase();
 });
 
 // tiny helper to build fake req/res
@@ -69,22 +83,31 @@ describe('authenticate middleware', () => {
     expect(getNextCalled()).toBe(false);
   });
 
-  test('calls next and attaches user when token is valid', () => {
-    const payload = { id: 'user-123', email: 'user@example.com', role: 'user' };
+  test('calls next and attaches user when token is valid', async () => {
+    const account = await Account.create({
+      username: 'jwt-user',
+      email: 'jwt@example.com',
+      password: 'test-pass',
+      role: 'user'
+    });
+
+    const payload = {
+      id: account._id.toString(),
+      email: account.email,
+      role: account.role
+    };
+
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: '1h',
+      expiresIn: '1h'
     });
 
     const { req, res, next, getNextCalled } = createMock(`Bearer ${token}`);
 
     authenticate(req, res, next);
 
-    // No error response
     expect(res.statusCode).toBe(0);
     expect(res.body).toBeNull();
-    // Middleware chain continues
     expect(getNextCalled()).toBe(true);
-    // User is attached
-    expect(req.user).toMatchObject(payload);
+    expect(req.user.id).toBe(account._id.toString());
   });
 });

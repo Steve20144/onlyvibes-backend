@@ -1,20 +1,25 @@
 // src/services/accountService.js
-import mongoose from 'mongoose';
 import Account from '../models/account.js';         // default export
-import { accounts } from '../data/accounts.js';
+import { isDbConnected } from '../utils/dbHealth.js';
 
-/**
- * Generate a simple unique account id for mock storage.
- * @returns {string}
- */
-const generateAccountId = () =>
-  `acc-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+const ensureDbConnected = () => {
+  if (!isDbConnected()) {
+    const err = new Error('Database not available');
+    err.statusCode = 503;
+    throw err;
+  }
+};
 
-/**
- * Check if MongoDB is connected.
- * @returns {boolean}
- */
-const isDbConnected = () => mongoose.connection.readyState === 1;
+const ensureEmailAvailable = async (email) => {
+  const normalizedEmail = typeof email === 'string' ? email.toLowerCase() : email;
+  const existing = await Account.findOne({ email: normalizedEmail });
+
+  if (existing) {
+    const err = new Error('Email already in use');
+    err.statusCode = 409;
+    throw err;
+  }
+};
 
 /**
  * Normalize a Mongoose document to a plain JS object and ensure `id` field exists.
@@ -45,71 +50,45 @@ const normalizeAccountDoc = (doc) => {
 export const createAccountService = async (payload) => {
   const now = new Date();
 
-  if (isDbConnected()) {
-    try {
-      const doc = await Account.create({
-        username: payload.name,
-        email: payload.email,
-        password: payload.password,
-        role: payload.role,
-        isVerified: payload.role === 'venue',
-        preferences: payload.preferences || [],
-        venueDetails: payload.venueDetails || null,
-        createdAt: now,
-        updatedAt: now
-      });
+  ensureDbConnected();
+  await ensureEmailAvailable(payload.email);
 
-      // Will add `id` from `_id`
-      return normalizeAccountDoc(doc);
-    } catch (error) {
-      console.error(
-        'createAccountService: MongoDB error, falling back to mock:',
-        error.message
-      );
-    }
+  try {
+    const doc = await Account.create({
+      username: payload.name,
+      email: payload.email,
+      password: payload.password,
+      role: payload.role,
+      isVerified: payload.role === 'venue',
+      preferences: payload.preferences || [],
+      venueDetails: payload.venueDetails || null,
+      createdAt: now,
+      updatedAt: now
+    });
+
+    return normalizeAccountDoc(doc);
+  } catch (error) {
+    console.error('createAccountService: MongoDB error:', error.message);
+    throw error;
   }
-
-  // Fallback to mock data when DB is not connected
-  const id = generateAccountId();
-
-  const newAccount = {
-    id,
-    username: payload.name,
-    email: payload.email,
-    password: payload.password,
-    role: payload.role,
-    isVerified: payload.role === 'venue',
-    preferences: payload.preferences || [],
-    venueDetails: payload.venueDetails || null,
-    createdAt: now,
-    updatedAt: now
-  };
-
-  accounts.push(newAccount);
-  return newAccount;
 };
 
 /**
  * Get an account by id.
  * @async
- * @param {string} id  - In Mongo mode this is `_id`, in mock mode it's `accounts[].id`
+ * @param {string} id  - In Mongo mode this is `_id`
  * @returns {Promise<object|null>}
  */
 export const getAccountByIdService = async (id) => {
-  if (isDbConnected()) {
-    try {
-      const doc = await Account.findById(id); // uses Mongo `_id`
-      return normalizeAccountDoc(doc);
-    } catch (error) {
-      console.error(
-        'getAccountByIdService: MongoDB error, falling back to mock:',
-        error.message
-      );
-    }
-  }
+  ensureDbConnected();
 
-  const account = accounts.find((acc) => acc.id === id);
-  return account || null;
+  try {
+    const doc = await Account.findById(id);
+    return normalizeAccountDoc(doc);
+  } catch (error) {
+    console.error('getAccountByIdService: MongoDB error:', error.message);
+    throw error;
+  }
 };
 
 /**
@@ -122,34 +101,20 @@ export const getAccountByIdService = async (id) => {
 export const updateAccountService = async (id, updates) => {
   const now = new Date();
 
-  if (isDbConnected()) {
-    try {
-      const doc = await Account.findByIdAndUpdate(
-        id, // _id in Mongo
-        { ...updates, updatedAt: now },
-        { new: true }
-      );
+  ensureDbConnected();
 
-      return normalizeAccountDoc(doc);
-    } catch (error) {
-      console.error(
-        'updateAccountService: MongoDB error, falling back to mock:',
-        error.message
-      );
-    }
+  try {
+    const doc = await Account.findByIdAndUpdate(
+      id,
+      { ...updates, updatedAt: now },
+      { new: true, runValidators: true }
+    );
+
+    return normalizeAccountDoc(doc);
+  } catch (error) {
+    console.error('updateAccountService: MongoDB error:', error.message);
+    throw error;
   }
-
-  const index = accounts.findIndex((acc) => acc.id === id);
-  if (index === -1) return null;
-
-  const updated = {
-    ...accounts[index],
-    ...updates,
-    updatedAt: now
-  };
-
-  accounts[index] = updated;
-  return updated;
 };
 
 /**
@@ -159,21 +124,13 @@ export const updateAccountService = async (id, updates) => {
  * @returns {Promise<boolean>}
  */
 export const deleteAccountService = async (id) => {
-  if (isDbConnected()) {
-    try {
-      const result = await Account.findByIdAndDelete(id); // _id in Mongo
-      return !!result;
-    } catch (error) {
-      console.error(
-        'deleteAccountService: MongoDB error, falling back to mock:',
-        error.message
-      );
-    }
+  ensureDbConnected();
+
+  try {
+    const result = await Account.findByIdAndDelete(id);
+    return !!result;
+  } catch (error) {
+    console.error('deleteAccountService: MongoDB error:', error.message);
+    throw error;
   }
-
-  const index = accounts.findIndex((acc) => acc.id === id);
-  if (index === -1) return false;
-
-  accounts.splice(index, 1);
-  return true;
 };
