@@ -21,8 +21,18 @@ jobs:
     - name: Install Dependencies
       run: npm install
 
-    - name: Run tests
-      run: npm run test
+    - name: Run tests with coverage
+      run: npm test -- --coverage
+
+    - name: Print coverage metrics
+      run: |
+        node -e "const fs=require('fs');const path='coverage/coverage-summary.json';if(!fs.existsSync(path)){console.error('Coverage summary not found at',path);process.exit(1);}const total=JSON.parse(fs.readFileSync(path,'utf8')).total;const fmt=p=>`${Number(p.pct).toFixed(2)}%`;console.log('Coverage Metrics are:');console.log(`- ${fmt(total.statements)} Statements,`);console.log(`- ${fmt(total.branches)} Branches,`);console.log(`- ${fmt(total.functions)} Functions,`);console.log(`- ${fmt(total.lines)} Lines`);"
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-html
+        path: coverage
 
   cd:
     runs-on: ubuntu-latest
