@@ -26,7 +26,22 @@ jobs:
 
     - name: Print coverage metrics
       run: |
-        node -e "const fs=require('fs');const path='coverage/coverage-summary.json';if(!fs.existsSync(path)){console.error('Coverage summary not found at',path);process.exit(1);}const total=JSON.parse(fs.readFileSync(path,'utf8')).total;const fmt=p=>`${Number(p.pct).toFixed(2)}%`;console.log('Coverage Metrics are:');console.log(`- ${fmt(total.statements)} Statements,`);console.log(`- ${fmt(total.branches)} Branches,`);console.log(`- ${fmt(total.functions)} Functions,`);console.log(`- ${fmt(total.lines)} Lines`);"
+        cat <<'EOF' >coverage-metrics.js
+        const fs = require('fs');
+        const coveragePath = 'coverage/coverage-summary.json';
+        if (!fs.existsSync(coveragePath)) {
+          console.error('Coverage summary not found at', coveragePath);
+          process.exit(1);
+        }
+        const { total } = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
+        const fmt = (p) => `${Number(p.pct).toFixed(2)}%`;
+        console.log('Coverage Metrics are:');
+        console.log(`- ${fmt(total.statements)} Statements,`);
+        console.log(`- ${fmt(total.branches)} Branches,`);
+        console.log(`- ${fmt(total.functions)} Functions,`);
+        console.log(`- ${fmt(total.lines)} Lines`);
+        EOF
+        node coverage-metrics.js
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
