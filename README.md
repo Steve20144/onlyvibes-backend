@@ -167,6 +167,26 @@ Each suite seeds its own fixtures, masks secrets in logs, and leaves the databas
 
 ---
 
+## CI/CD Pipeline
+
+The project uses **GitHub Actions** for continuous integration and deployment. The workflow is defined in `.github/workflows/ci.yml` and triggers on every push to `main` and on pull requests.
+
+### CI Job
+Runs on `ubuntu-latest` with Node.js 22:
+1. **Checkout** – Clones the repository
+2. **Install Dependencies** – Runs `npm install`
+3. **Run Tests with Coverage** – Executes `npm test -- --coverage` using Jest and mongodb-memory-server
+4. **Print Coverage Metrics** – Parses `coverage/coverage-summary.json` and logs statement, branch, function, and line coverage percentages
+5. **Upload Coverage Artifact** – Stores the HTML coverage report as a downloadable artifact
+
+### CD Job
+Runs after the CI job succeeds:
+1. **Deploy to Render** – Uses the `render-deploy-action` to trigger a deployment on [Render](https://render.com) using `RENDER_SERVICE_ID` and `RENDER_API_KEY` secrets
+
+> Pull requests must pass the CI job before merging. Deployments to Render only occur on pushes to `main`.
+
+---
+
 ## Known Gaps / Next Steps
 1. Implement a real "liked events" model so `GET /events/liked/:userId` returns data instead of an empty array.
 2. Extend auth-protected routes to actually use `authenticate` and gate event creation/update/deletion by role.
