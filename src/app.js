@@ -48,7 +48,7 @@ app.use((req, res, next) => {
 /**
  * Health check
  */
-app.get('/health', (_req, res) => {
+app.get('/health', (_req /* unused */, res) => {
   return res.status(200).json({
     success: true,
     data: { status: 'ok' },
@@ -87,7 +87,7 @@ app.use((req, res) => {
 /**
  * Centralized error handler
  */
-app.use((err, _req, res, _next) => {
+app.use((err, _req /* unused */, res, _next /* unused */) => {
   const statusCode = err.statusCode || 500;
 
   if (statusCode === 400 || err.name === 'ValidationError') {
