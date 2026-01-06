@@ -8,8 +8,20 @@ on:
 jobs:
   #CI
   ci:
-    runs-on: ubuntu-latest
-    steps:
+  runs-on: ubuntu-latest
+
+  services:
+    mongo:
+      image: mongo:7
+      ports:
+        - 27017:27017
+      options: >-
+        --health-cmd="mongosh --eval 'db.runCommand({ ping: 1 })'"
+        --health-interval=10s
+        --health-timeout=5s
+        --health-retries=5
+
+  steps:
     - name: Checkout
       uses: actions/checkout@v4
 
@@ -18,11 +30,32 @@ jobs:
       with:
         node-version: 22
 
-    - name: Install Dependencies
+    - name: Install dependencies
       run: npm install
 
     - name: Run tests with coverage
       run: npm test -- --coverage
+
+    - name: Start backend
+      env:
+        MONGO_URI: mongodb://mongo:27017/ci-db
+        NODE_ENV: test
+        PORT: 3000
+      run: |
+        npm run start &
+        sleep 10
+
+    - name: Install k6
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gnupg ca-certificates
+        curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install -y k6
+
+    - name: Run k6 load & spike tests
+      run: k6 run ./tests/k6/accounts.test.js
 
     - name: Print coverage metrics
       run: |
@@ -48,6 +81,7 @@ jobs:
       with:
         name: coverage-html
         path: coverage
+
 
   cd:
     runs-on: ubuntu-latest

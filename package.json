@@ -21,6 +21,7 @@
   "devDependencies": {
     "@stryker-mutator/core": "^9.4.0",
     "@stryker-mutator/jest-runner": "^9.4.0",
+    "@types/k6": "^1.4.0",
     "bcrypt": "^6.0.0",
     "cross-env": "^10.1.0",
     "jest": "^30.2.0",
