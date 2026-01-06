@@ -74,7 +74,7 @@ app.use(authRoutes); // ⬅️ NEW: exposes /auth/signup and /auth/login
 /**
  * 404 handler
  */
-app.use((req, res, _next) => {
+app.use((req, res) => {
   return res.status(404).json({
     success: false,
     data: null,
