@@ -48,7 +48,8 @@ app.use((req, res, next) => {
 /**
  * Health check
  */
-app.get('/health', (_req /* unused */, res) => {
+// eslint-disable-next-line no-unused-vars
+app.get('/health', (req, res) => {
   return res.status(200).json({
     success: true,
     data: { status: 'ok' },
