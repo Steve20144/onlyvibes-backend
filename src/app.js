@@ -87,7 +87,8 @@ app.use((req, res) => {
 /**
  * Centralized error handler
  */
-app.use((err, _req /* unused */, res, _next /* unused */) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
 
   if (statusCode === 400 || err.name === 'ValidationError') {
