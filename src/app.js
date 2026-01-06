@@ -74,6 +74,7 @@ app.use(authRoutes); // ⬅️ NEW: exposes /auth/signup and /auth/login
 /**
  * 404 handler
  */
+// removed next (or _next) to tackle Companion's Major Violation
 app.use((req, res) => {
   return res.status(404).json({
     success: false,
