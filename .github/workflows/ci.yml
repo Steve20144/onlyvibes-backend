@@ -44,17 +44,13 @@ jobs:
           npm run start &
           npx wait-on http://localhost:3000
 
-      - name: Install k6
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gnupg ca-certificates
-          curl -fsSL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update
-          sudo apt-get install -y k6
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
 
       - name: Run k6 load & spike tests
-        run: k6 run ./k6/tests/account.load.js
+        uses: grafana/run-k6-action@v1
+        with:
+          path: ./k6/tests/account.load.js
 
       - name: Print coverage metrics
         run: |
