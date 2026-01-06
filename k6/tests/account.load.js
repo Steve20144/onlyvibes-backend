@@ -34,7 +34,7 @@ const users = new SharedArray('users', function () {
   for (let i = 0; i < 200; i++) {
     // Generate enough users to pick from randomly
     userList.push({
-      name: `Test User ${i}`,
+      username: `TestUser${i}`,
       email: `testuser-${i}-${Date.now()}@example.com`,
       password: 'password123',
       role: 'user',
