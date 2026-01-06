@@ -54,8 +54,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y k6
 
-      - name: Run k6 load & spike tests
-        run: k6 run ./k6/tests/account.load.js
+      - name: Run k6 performance tests
+        run: |
+          k6 run k6/tests/account.load.js
+          k6 run k6/tests/get-events.load.js
+          k6 run k6/tests/get-events.spike.js
 
       - name: Print coverage metrics
         run: |
