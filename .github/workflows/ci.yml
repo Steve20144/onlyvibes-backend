@@ -53,10 +53,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y k6
 
-      - name: Run k6 load & spike tests
-        env:
-          BASE_URL: http://localhost:3000
-        run: k6 run ./k6/tests/account.load.js
+    - name: Run k6 load & spike tests
+      run: k6 run ./k6/tests/account.test.js
 
       - name: Print coverage metrics
         run: |
