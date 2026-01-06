@@ -2,6 +2,8 @@ import http from 'k6/http';
 import { sleep } from 'k6';
 import { SharedArray } from 'k6/data';
 
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
+
 export const options = {
   scenarios: {
     load_test: {
@@ -12,6 +14,7 @@ export const options = {
         { duration: '40s', target: 25 },
         { duration: '20s', target: 0 },
       ],
+      gracefulRampDown: '10s',
     },
 
     spike_test: {
@@ -24,6 +27,7 @@ export const options = {
         { duration: '15s', target: 10 },
         { duration: '10s', target: 0 },
       ],
+      gracefulRampDown: '10s',
     },
   },
 
@@ -49,37 +53,54 @@ const users = new SharedArray('users', function () {
 export function setup() {
   const accountIds = [];
 
-  users.forEach((user) => {
-    const res = http.post(
-      'http://localhost:3000/accounts',
-      JSON.stringify(user),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+  for (const user of users) {
+    const res = http.post(`${BASE_URL}/accounts`, JSON.stringify(user), {
+      headers: { 'Content-Type': 'application/json' },
+      tags: { name: 'POST /accounts' },
+    });
 
     if (res.status === 201) {
-      const data = JSON.parse(res.body);
-      accountIds.push(data.data._id);
+      try {
+        const body = JSON.parse(res.body);
+        // expecting: { data: { _id: "..." } }
+        const id = body?.data?._id;
+        if (id) accountIds.push(id);
+      } catch (_) {
+        // ignore JSON parse errors; will just reduce the available IDs
+      }
     }
-  });
+  }
 
   return { accountIds };
 }
 
 export default function (data) {
+  if (!data?.accountIds?.length) {
+    // If setup failed to create users, avoid spamming bad requests
+    sleep(1);
+    return;
+  }
+
   const randomId =
     data.accountIds[Math.floor(Math.random() * data.accountIds.length)];
 
-  http.get(`http://localhost:3000/accounts/${randomId}`);
+  http.get(`${BASE_URL}/accounts/${randomId}`, {
+    tags: { name: 'GET /accounts/:id' },
+  });
+
   sleep(1);
 }
 
 export function teardown(data) {
-  if (!data || !data.accountIds) return;
+  if (!data?.accountIds?.length) return;
 
-  data.accountIds.forEach((id) => {
-    const res = http.del(`http://localhost:3000/accounts/${id}`);
+  for (const id of data.accountIds) {
+    const res = http.del(`${BASE_URL}/accounts/${id}`, null, {
+      tags: { name: 'DELETE /accounts/:id' },
+    });
+
     if (res.status !== 204 && res.status !== 200) {
       console.error(`Failed to delete account ${id}, status: ${res.status}`);
     }
-  });
+  }
 }
