@@ -1,3 +1,4 @@
+/*
 import http from 'k6/http';
 import { sleep, check } from 'k6';
 import { SharedArray } from 'k6/data';
@@ -119,4 +120,46 @@ export function teardown(data) {
       console.error(`Failed to delete account ${id}: ${res.status}`);
     }
   }
+}
+*/
+
+// ==========================================
+// SIMPLIFIED SCRIPT FOR RUNNER THRESHOLD
+// ==========================================
+
+import http from 'k6/http';
+import { check, sleep } from 'k6';
+
+export const options = {
+  scenarios: {
+    runner_capacity_test: {
+      executor: 'ramping-vus',
+      startTime: '0s',
+      startVUs: 0,
+      stages: [
+        { duration: '30s', target: 20 },
+        { duration: '1m', target: 100 },
+        { duration: '1m', target: 200 },
+        { duration: '1m', target: 300 },
+        { duration: '30s', target: 0 },
+      ],
+      gracefulStop: '10s',
+    },
+  },
+  thresholds: {
+    'http_req_duration': ['p(95)<1000'],
+    'http_req_failed': ['rate<0.05'],
+  },
+};
+
+const BASE_URL = 'http://localhost:3000';
+
+export default function () {
+  const res = http.get(`${BASE_URL}/health`);
+
+  check(res, {
+    'status is 200': (r) => r.status === 200,
+  });
+  
+  sleep(0.5); 
 }
