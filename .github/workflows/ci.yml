@@ -42,7 +42,7 @@ jobs:
           PORT: 3000
         run: |
           npm run start &
-          npx wait-on http://localhost:3000
+          npx wait-on http://localhost:3000/health
 
       - name: Setup K6
         uses: grafana/setup-k6-action@v1
