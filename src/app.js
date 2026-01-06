@@ -86,7 +86,7 @@ app.use((req, res, _next) => {
 /**
  * Centralized error handler
  */
-app.use((err, req, res, _next) => {
+app.use((err, _req, res, _next) => {
   const statusCode = err.statusCode || 500;
 
   if (statusCode === 400 || err.name === 'ValidationError') {
