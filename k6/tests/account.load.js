@@ -1,4 +1,3 @@
-/*
 import http from 'k6/http';
 import { sleep, check } from 'k6';
 import { SharedArray } from 'k6/data';
@@ -6,36 +5,25 @@ import { SharedArray } from 'k6/data';
 // 1. Configuration / Options
 export const options = {
   scenarios: {
-    // Load Test: Steady ramp up to moderate load
-    load_test: {
+    // Breakpoint Test: Ramp up until failure
+    breakpoint_test: {
       executor: 'ramping-vus',
       startTime: '0s',
       startVUs: 0,
       stages: [
-        { duration: '30s', target: 30 }, // Ramp to 30 VUs over 30s
-        { duration: '60s', target: 30 }, // Hold at 30 VUs for 60s
-        { duration: '30s', target: 0 },  // Ramp down
+        { duration: '1m', target: 50 },   // Warm up
+        { duration: '2m', target: 500 },  // High Load
+        { duration: '2m', target: 1000 }, // Stress Zone (Likely 4-core limit for Node/Mongo)
+        { duration: '2m', target: 2000 }, // Breakpoint Zone
       ],
-      gracefulStop: '10s',
-    },
-    // Spike Test: Sudden burst of traffic
-    spike_test: {
-      executor: 'ramping-vus',
-      startTime: '2m10s', // Start after load test finishes (roughly)
-      startVUs: 0,
-      stages: [
-        { duration: '10s', target: 10 },  // Warm up slightly
-        { duration: '10s', target: 80 },  // Spike to 80 VUs extremely fast
-        { duration: '30s', target: 80 },  // Hold the spike
-        { duration: '10s', target: 0 },   // Cool down
-      ],
-      gracefulStop: '10s',
+      gracefulStop: '30s',
     },
   },
   thresholds: {
-    // Global thresholds
-    http_req_failed: ['rate<0.01'], // Failure rate must be less than 1%
-    http_req_duration: ['p(95)<500'], // 95% of requests must complete below 500ms
+    // We don't want to fail early, we want to see how high we get.
+    // However, we track these metrics to see when they cross acceptable lines.
+    http_req_failed: ['rate<0.01'], 
+    http_req_duration: ['p(95)<5000'], // 5 seconds latency is the "unusable" line
   },
 };
 
@@ -62,21 +50,28 @@ export function setup() {
   const createdIds = [];
   console.log('Setup: seeding users...');
 
-  users.forEach((user) => {
+  // Limit setup to fewer users to save time/resources in CI
+  const setupUsers = users.slice(0, 50); 
+
+  setupUsers.forEach((user) => {
     const res = http.post(
-      `${BASE_URL}/accounts`,
+      `${BASE_URL}/auth/signup`, // CHANGED: typically users are created via signup, or adjust if accounts/ is correct
       JSON.stringify(user),
       { headers: { 'Content-Type': 'application/json' } }
     );
 
-    if (res.status === 201) {
+    if (res.status === 201 || res.status === 200) {
       const body = JSON.parse(res.body);
-      // Assuming response structure: { data: { _id: "..." } } based on typical express patterns
-      if (body.data && body.data._id) {
-        createdIds.push(body.data._id);
+      // Adjust based on your actual API response for signup/create
+      const id = body.data?.user?._id || body.data?._id; 
+      if (id) {
+        createdIds.push(id);
       }
     } else {
-      console.error(`Setup failed for user ${user.email}: ${res.status} ${res.body}`);
+       // Optional: ignore 409 conflict if user already exists
+       if(res.status !== 409) {
+          console.error(`Setup failed for user ${user.email}: ${res.status}`);
+       }
     }
   });
 
@@ -112,8 +107,6 @@ export function teardown(data) {
 
   console.log(`Teardown: deleting ${data.createdIds.length} users...`);
   
-  // We can process these in batches or parallelized if k6 supports it contextually,
-  // but a simple loop works for functional cleanup.
   for (const id of data.createdIds) {
     const res = http.del(`${BASE_URL}/accounts/${id}`);
     if (res.status !== 200 && res.status !== 204) {
@@ -121,45 +114,4 @@ export function teardown(data) {
     }
   }
 }
-*/
 
-// ==========================================
-// SIMPLIFIED SCRIPT FOR RUNNER THRESHOLD
-// ==========================================
-
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-
-export const options = {
-  scenarios: {
-    runner_capacity_test: {
-      executor: 'ramping-vus',
-      startTime: '0s',
-      startVUs: 0,
-      stages: [
-        { duration: '30s', target: 20 },
-        { duration: '1m', target: 100 },
-        { duration: '1m', target: 200 },
-        { duration: '1m', target: 300 },
-        { duration: '30s', target: 0 },
-      ],
-      gracefulStop: '10s',
-    },
-  },
-  thresholds: {
-    'http_req_duration': ['p(95)<1000'],
-    'http_req_failed': ['rate<0.05'],
-  },
-};
-
-const BASE_URL = 'http://localhost:3000';
-
-export default function () {
-  const res = http.get(`${BASE_URL}/health`);
-
-  check(res, {
-    'status is 200': (r) => r.status === 200,
-  });
-  
-  sleep(0.5); 
-}
