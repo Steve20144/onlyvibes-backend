@@ -117,7 +117,7 @@ jobs:
           PORT: 3000
         run: |
           npm run start &
-          npx wait-on http://localhost:3000/health
+          npx wait-on http://localhost:3000/
 
       - name: Install k6
         run: |
