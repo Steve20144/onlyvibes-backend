@@ -86,6 +86,7 @@ eventSchema.post('findOneAndDelete', function (doc) {
 });
 
 // Error hook
+// eslint-disable-next-line no-unused-vars
 eventSchema.post('save', function (error, doc, next) {
   if (error) {
     logEventModelError('Error during save', error);

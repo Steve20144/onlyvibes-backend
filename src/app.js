@@ -48,6 +48,7 @@ app.use((req, res, next) => {
 /**
  * Health check
  */
+// eslint-disable-next-line no-unused-vars
 app.get('/health', (req, res) => {
   return res.status(200).json({
     success: true,
@@ -74,7 +75,8 @@ app.use(authRoutes); // ⬅️ NEW: exposes /auth/signup and /auth/login
 /**
  * 404 handler
  */
-app.use((req, res, next) => {
+// removed next (or _next) to tackle Companion's Major Violation
+app.use((req, res) => {
   return res.status(404).json({
     success: false,
     data: null,
@@ -86,6 +88,7 @@ app.use((req, res, next) => {
 /**
  * Centralized error handler
  */
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
 
