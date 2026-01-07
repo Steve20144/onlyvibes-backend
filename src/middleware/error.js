@@ -3,7 +3,7 @@
 /**
  * 404 handler for unmatched routes.
  */
-function notFound(req, res, _next) {
+function notFound(req, res, __next) {
   res.status(404).json({
     message: `Route ${req.method} ${req.originalUrl} not found`,
   });
@@ -18,7 +18,7 @@ function notFound(req, res, _next) {
  * - err.status or err.statusCode for custom status
  * - err.message for human-readable error
  */
-function errorHandler(err, _req, res, _next) {
+function errorHandler(err, __req, res, __next) {
   console.error('Error handler caught:', err);
 
   const status = err.status || err.statusCode || 500;

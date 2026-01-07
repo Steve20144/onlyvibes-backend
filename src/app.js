@@ -48,7 +48,7 @@ app.use((req, res, next) => {
 /**
  * Health check
  */
-app.get('/health', (_req, res) => {
+app.get('/health', (__req, res) => {
   return res.status(200).json({
     success: true,
     data: { status: 'ok' },
@@ -74,7 +74,7 @@ app.use(authRoutes); // ⬅️ NEW: exposes /auth/signup and /auth/login
 /**
  * 404 handler
  */
-app.use((req, res, _next) => {
+app.use((req, res, __next) => {
   return res.status(404).json({
     success: false,
     data: null,
@@ -86,7 +86,7 @@ app.use((req, res, _next) => {
 /**
  * Centralized error handler
  */
-app.use((err, _req, res, _next) => {
+app.use((err, __req, res, __next) => {
   const statusCode = err.statusCode || 500;
 
   if (statusCode === 400 || err.name === 'ValidationError') {
