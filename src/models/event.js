@@ -86,7 +86,7 @@ eventSchema.post('findOneAndDelete', function (doc) {
 });
 
 // Error hook
-eventSchema.post('save', function (error, __doc, next) {
+eventSchema.post('save', function (error, next) {
   if (error) {
     logEventModelError('Error during save', error);
   }
