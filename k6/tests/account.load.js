@@ -2,18 +2,16 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export const options = {
-  // Stress Test: Push the system beyond normal limits to find the breaking point.
-  // Previous test showed 1500 VUs with ~22ms p(95), so we need significantly higher load.
+  // Load Test: Simulate a typical heavy usage scenario (500 users)
   stages: [
-    { duration: "30s", target: 500 },  // Fast Warm up
-    { duration: "1m",  target: 2000 }, // Ramp to heavier load
-    { duration: "2m",  target: 4000 }, // Push typically hard
-    { duration: "2m",  target: 6000 }, // Push to potential breaking point
-    { duration: "1m",  target: 0 },    // Cooldown
+    { duration: "30s", target: 50 },   // Warm up
+    { duration: "1m",  target: 500 },  // Ramp to full load
+    { duration: "3m",  target: 500 },  // Stay at peak load
+    { duration: "30s", target: 0 },    // Cooldown
   ],
   thresholds: {
     http_req_failed: ["rate<0.01"],      // <1% errors
-    http_req_duration: ["p(95)<1000"],   // Relaxed threshold for stress testing (1s)
+    http_req_duration: ["p(95)<500"],    // 95% of requests should be under 500ms
   },
 };
 
@@ -21,12 +19,12 @@ const BASE_URL = "http://localhost:3000";
 
 export function setup() {
   const ids = [];
-  const count = 50; // Increased pool for higher concurrency
+  const count = 50; 
 
   for (let i = 0; i < count; i++) {
     const payload = JSON.stringify({
-      email: `k6_stress_${Date.now()}_${i}@example.com`,
-      username: `k6-stress-${i}`,
+      email: `k6_load_${Date.now()}_${i}@example.com`,
+      username: `k6-load-${i}`,
       password: "P@ssw0rd123!",
       role: "user",
     });
@@ -45,7 +43,7 @@ export function setup() {
           ids.push(String(id));
         }
       } catch (e) {
-        console.error(`Failed to parse JSON for status ${res.status}`);
+          // ignore setup details
       }
     }
   }

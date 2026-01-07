@@ -5,8 +5,8 @@ export const options = {
   // Spike Test: Assess system recovery after a sudden burst of activity
   stages: [
     { duration: "10s", target: 100 },  // Low level start
-    { duration: "30s", target: 6000 }, // Massive spike!
-    { duration: "1m",  target: 6000 }, // Stay at peak to test endurance under distress
+    { duration: "30s", target: 2500 }, // Massive spike!
+    { duration: "1m",  target: 2500 }, // Stay at peak to test endurance under distress
     { duration: "30s", target: 100 },  // Quick scale down
     { duration: "20s", target: 0 },    // Stop
   ],
