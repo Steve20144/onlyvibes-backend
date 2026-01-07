@@ -28,6 +28,18 @@
     "mongodb-memory-server": "^10.1.4",
     "supertest": "^7.1.4"
   },
+  "eslintConfig": {
+    "rules": {
+      "no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_",
+          "caughtErrorsIgnorePattern": "^_"
+        }
+      ]
+    }
+  },
   "overrides": {
     "jws": "^3.2.2",
     "qs": "^6.14.0"
