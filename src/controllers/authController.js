@@ -42,7 +42,7 @@ export async function signup(req, res, next) {
         role: account.role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '7d', algorithm: 'HS256' }
     );
 
     return res.status(201).json({
@@ -84,7 +84,7 @@ export async function login(req, res, next) {
         role: account.role,
       },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '7d', algorithm: 'HS256' }
     );
 
     return res.json({
