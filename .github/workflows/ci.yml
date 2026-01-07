@@ -79,7 +79,7 @@ jobs:
           k6 run k6/tests/get-events.load.js
           k6 run k6/tests/get-events.spike.js
 
-  cd:
+  verification:
     runs-on: ubuntu-latest
     needs: performance
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
@@ -154,7 +154,7 @@ jobs:
 
   cd:
     runs-on: ubuntu-latest
-    needs: ci
+    needs: verification
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to Render
