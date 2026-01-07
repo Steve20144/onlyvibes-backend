@@ -82,6 +82,79 @@ jobs:
     runs-on: ubuntu-latest
     needs: performance
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage
+
+      - name: Start backend
+        env:
+          MONGO_URI: mongodb://localhost:27017/ci-db
+          NODE_ENV: test
+          PORT: 3000
+        run: |
+          npm run start &
+          npx wait-on http://localhost:3000/health
+
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Run k6 load & spike tests
+        uses: grafana/run-k6-action@v1
+        with:
+          path: ./k6/tests/account.load.js
+
+      - name: Print coverage metrics
+        run: |
+          node --input-type=module <<'EOF'
+          import { existsSync, readFileSync } from 'node:fs';
+
+          const coveragePath = 'coverage/coverage-summary.json';
+          if (!existsSync(coveragePath)) {
+            console.error('Coverage summary not found at', coveragePath);
+            process.exit(1);
+          }
+          const { total } = JSON.parse(readFileSync(coveragePath, 'utf8'));
+          const fmt = (p) => `${Number(p.pct).toFixed(2)}%`;
+          console.log('Coverage Metrics are:');
+          console.log(`- ${fmt(total.statements)} Statements,`);
+          console.log(`- ${fmt(total.branches)} Branches,`);
+          console.log(`- ${fmt(total.functions)} Functions,`);
+          console.log(`- ${fmt(total.lines)} Lines`);
+          EOF
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: coverage
+
+  cd:
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to Render
         uses: johnbeynon/render-deploy-action@v0.0.8
