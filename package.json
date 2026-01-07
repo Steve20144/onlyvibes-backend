@@ -33,9 +33,9 @@
       "no-unused-vars": [
         "error",
         {
-          "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^_",
-          "caughtErrorsIgnorePattern": "^_"
+          "argsIgnorePattern": "^__",
+          "varsIgnorePattern": "^__",
+          "caughtErrorsIgnorePattern": "^__"
         }
       ]
     }
