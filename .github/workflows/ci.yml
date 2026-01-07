@@ -76,7 +76,8 @@ jobs:
 
       - name: Run k6 performance tests
         run: |
-          k6 run k6/tests/account.load.js
+          k6 run k6/tests/account.stress.js
+          k6 run k6/tests/account.spike.js
           k6 run k6/tests/get-events.load.js
           k6 run k6/tests/get-events.spike.js
 
