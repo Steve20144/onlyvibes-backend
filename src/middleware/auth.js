@@ -21,7 +21,7 @@ export function authenticate(req, res, next) {
       return res.status(500).json({ message: 'Server configuration error' });
     }
 
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
     req.user = decoded;
     return next();
   } catch (err) {
