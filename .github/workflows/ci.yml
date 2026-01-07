@@ -57,7 +57,7 @@ jobs:
 
       - name: Start backend
         env:
-          MONGO_URI: mongodb://loaclhost:27017/ci-db
+          MONGO_URI: mongodb://localhost:27017/ci-db
           NODE_ENV: test
           PORT: 3000
         run: |
