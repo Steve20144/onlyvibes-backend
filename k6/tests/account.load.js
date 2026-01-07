@@ -2,8 +2,14 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 export const options = {
-  vus: 10,
-  duration: "1m",
+  // Replace fixed 'vus' and 'duration' with stages
+  stages: [
+    { duration: "30s", target: 200 },  // Warm up to normal load
+    { duration: "1m",  target: 500 },  // Ramp to heavy load
+    { duration: "1m",  target: 1000 }, // Stress test
+    { duration: "1m",  target: 1500 }, // Breaking point search
+    { duration: "30s", target: 0 },    // Cooldown
+  ],
   thresholds: {
     http_req_failed: ["rate<0.01"],      // <1% errors
     http_req_duration: ["p(95)<800"],    // 95% under 800ms
