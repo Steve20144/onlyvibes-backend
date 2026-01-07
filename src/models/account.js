@@ -38,16 +38,12 @@ const accountSchema = new mongoose.Schema({
     location: String,
     taxIdentificationNumHashed: Number,
     businessRegistrationNumHashed: Number
-  },
-  createdAt: {
-    type: Date,
-    default: () => new Date()
-  },
-  updatedAt: {
-    type: Date,
-    default: () => new Date()
   }
-});
+},
+{ 
+  timestamps: true // createdAt, updatedAt
+}
+);
 
 // Avoid OverwriteModelError when tests reload things
 const Account =
