@@ -10,6 +10,11 @@ const TARGET_RPS = Number(__ENV.TARGET_RPS || 100);               // Target: 100
 const P95_MS = Number(__ENV.P95_MS || 1500);                      // Initial p95 threshold (relax for calibration)
 const P99_MS = Number(__ENV.P99_MS || 2500);                      // Initial p99 threshold
 const MAX_FAILURE_RATE = Number(__ENV.MAX_FAILURE_RATE || 0.02);  // Allow 2% failures initially (tighten after calibration)
+const REQUEST_TIMEOUT = String(__ENV.REQUEST_TIMEOUT || '10s');    // Fail fast on hangs/timeouts (k6 default is ~60s)
+
+// "CI realistic" guardrails: prevent false-greens caused by an empty/tiny dataset in CI.
+const REQUIRE_MIN_EVENTS = String(__ENV.REQUIRE_MIN_EVENTS || '1') === '1';
+const MIN_EVENTS = Number(__ENV.MIN_EVENTS || 20);
 
 const WARMUP_RPS = Math.max(1, Math.ceil(TARGET_RPS * 0.1)); // 10% of peak for warmup (10 RPS)
 
@@ -43,17 +48,24 @@ export default function () {
 	const url = `${BASE_URL}${EVENTS_PATH}`;
 	const res = http.get(url, {
 		tags: { endpoint: 'get_events' },
+		timeout: REQUEST_TIMEOUT,
 	});
 
 	const ok = check(
 		res,
 		{
 			'status is 200': (r) => r.status === 200,
-			'content-type is json': (r) => (r.headers['Content-Type'] || '').includes('application/json'),
-			'response has success=true': (r) => r.json('success') === true,
-			'response has data array': (r) => Array.isArray(r.json('data')),
-			'response has message string': (r) => typeof r.json('message') === 'string',
-			'response has error=null': (r) => r.json('error') === null,
+			'content-type is json': (r) => r.status === 200 && (r.headers['Content-Type'] || '').includes('application/json'),
+			'response has success=true': (r) => r.status === 200 && r.json('success') === true,
+			'response has data array': (r) => r.status === 200 && Array.isArray(r.json('data')),
+			'response has >= MIN_EVENTS events': (r) => {
+				if (!REQUIRE_MIN_EVENTS) return true;
+				if (r.status !== 200) return false;
+				const count = r.json('data.#');
+				return typeof count === 'number' && count >= MIN_EVENTS;
+			},
+			'response has message string': (r) => r.status === 200 && typeof r.json('message') === 'string',
+			'response has error=null': (r) => r.status === 200 && r.json('error') === null,
 		},
 		{ endpoint: 'get_events' }
 	);
