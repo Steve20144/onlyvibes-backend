@@ -89,7 +89,7 @@ jobs:
           MIN_EVENTS: '100'
           TARGET_VUS: '275'
           SPIKE_VUS: '150'
-          SLEEP_SECONDS: '0
+          SLEEP_SECONDS: '0'
           REQUEST_TIMEOUT: '10s'
         run: |
           k6 run k6/tests/get-events.load.js
