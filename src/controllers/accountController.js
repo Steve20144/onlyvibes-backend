@@ -8,8 +8,8 @@ import {
 
 /**
  * Simple email validation helper.
- * @param {string} email
- * @returns {boolean}
+ * @param {string} email The email address to validate.
+ * @returns {boolean} True if the email is valid, false otherwise.
  */
 const isValidEmail = (email) => {
   if (!email) return false;
@@ -17,8 +17,14 @@ const isValidEmail = (email) => {
   return re.test(email);
 };
 
+// Defines the roles that can be assigned to an account.
 const allowedAccountRoles = ['user', 'venue'];
 
+/**
+ * Validates the payload for creating a new account.
+ * @param {object} payload The request body containing account data.
+ * @throws {Error} If validation fails, throws an error with a 400 status code.
+ */
 const validateAccountPayload = (payload) => {
   const errors = [];
 
@@ -45,6 +51,13 @@ const validateAccountPayload = (payload) => {
   }
 };
 
+/**
+ * Sanitizes and validates the payload for updating an account.
+ * It ensures that only allowed fields are updated and that their values are valid.
+ * @param {object} payload The request body containing account updates.
+ * @returns {object} The sanitized update object.
+ * @throws {Error} If the payload is invalid or contains disallowed fields.
+ */
 const sanitizeAccountUpdates = (payload) => {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     const err = new Error('Request body must be a JSON object.');
@@ -52,6 +65,7 @@ const sanitizeAccountUpdates = (payload) => {
     throw err;
   }
 
+  // A set of fields that are permitted to be updated.
   const updatableFields = new Set([
     'username',
     'email',
@@ -74,6 +88,7 @@ const sanitizeAccountUpdates = (payload) => {
 
     touched = true;
 
+    // Validate and sanitize each field based on its type and constraints.
     switch (key) {
       case 'username': {
         if (typeof value !== 'string' || value.trim().length < 2) {
@@ -143,6 +158,7 @@ const sanitizeAccountUpdates = (payload) => {
     }
   }
 
+  // Ensure at least one field was provided for update.
   if (!touched) {
     const err = new Error('Provide at least one field to update.');
     err.statusCode = 400;
@@ -153,11 +169,12 @@ const sanitizeAccountUpdates = (payload) => {
 };
 
 /**
- * Create a new account.
+ * Handles the creation of a new account.
  * @async
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} A JSON response indicating success or failure.
  */
 export const createAccount = async (req, res, next) => {
   try {
@@ -177,7 +194,12 @@ export const createAccount = async (req, res, next) => {
 };
 
 /**
- * Get a single account by id.
+ * Retrieves a single account by its ID.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} The account data or an error message.
  */
 export const getAccountById = async (req, res, next) => {
   try {
@@ -202,7 +224,12 @@ export const getAccountById = async (req, res, next) => {
 };
 
 /**
- * Update an account by id.
+ * Updates an existing account by its ID.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} The updated account data or an error message.
  */
 export const updateAccount = async (req, res, next) => {
   try {
@@ -228,8 +255,12 @@ export const updateAccount = async (req, res, next) => {
 };
 
 /**
- * Delete an account by id.
- * (Use 200 so we can send {success, data, error, message})
+ * Deletes an account by its ID.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} A confirmation message.
  */
 export const deleteAccount = async (req, res, next) => {
   try {

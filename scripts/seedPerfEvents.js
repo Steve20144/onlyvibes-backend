@@ -2,24 +2,49 @@ import mongoose from 'mongoose';
 import Account from '../src/models/account.js';
 import Event from '../src/models/event.js';
 
+/**
+ * Retrieves the value of a command-line argument.
+ * @param {string} flag - The command-line flag (e.g., '--count').
+ * @returns {string|undefined} The value of the argument, or undefined if not found.
+ */
 function getArgValue(flag) {
 	const idx = process.argv.indexOf(flag);
 	if (idx === -1) return undefined;
 	return process.argv[idx + 1];
 }
 
+/**
+ * Checks if a command-line flag is present.
+ * @param {string} flag - The flag to check for.
+ * @returns {boolean} True if the flag is present, false otherwise.
+ */
 function hasFlag(flag) {
 	return process.argv.includes(flag);
 }
 
+/**
+ * Escapes special characters in a string for use in a regular expression.
+ * @param {string} str - The string to escape.
+ * @returns {string} The escaped string.
+ */
 function escapeRegExp(str) {
 	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/**
+ * Sanitizes a string to be used in an email address.
+ * @param {string} str - The string to sanitize.
+ * @returns {string} The sanitized string.
+ */
 function sanitizeForEmail(str) {
 	return String(str).toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
 }
 
+/**
+ * Main function to seed the database with performance test data.
+ * It can either clean up existing data or create new events and a creator account.
+ * @async
+ */
 async function main() {
 	const mongoUri = process.env.MONGO_URI;
 	if (!mongoUri) {
@@ -39,6 +64,7 @@ async function main() {
 
 	try {
 		if (cleanup) {
+			// If the --cleanup flag is present, delete events and accounts with the specified prefix.
 			const titleRegex = new RegExp(`^${escapeRegExp(titlePrefix)}`);
 			const deleteEventsRes = await Event.deleteMany({ title: titleRegex });
 			const deleteAccountRes = await Account.deleteMany({ email: seedEmail });
@@ -58,6 +84,7 @@ async function main() {
 			return;
 		}
 
+		// Find or create a creator account for the new events.
 		let creator = await Account.findOne({ email: seedEmail });
 		if (!creator) {
 			creator = await Account.create({
@@ -71,6 +98,7 @@ async function main() {
 		const categories = ['music', 'party', 'festival', 'live'];
 		const locations = ['CI Venue A', 'CI Venue B', 'CI Venue C', 'CI Venue D'];
 
+		// Generate a specified number of new events.
 		const now = Date.now();
 		const events = Array.from({ length: count }, (_, i) => {
 			const dateTime = new Date(now + i * 60 * 60 * 1000);
@@ -85,6 +113,7 @@ async function main() {
 			};
 		});
 
+		// Insert the new events into the database.
 		await Event.insertMany(events, { ordered: false });
 
 		console.log(

@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
+// Base URL for the API, configurable via environment variables.
 const BASE_URL = (__ENV.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 const EVENTS_PATH = '/events/';
 
@@ -20,6 +21,17 @@ const MIN_EVENTS = Number(__ENV.MIN_EVENTS || 20);
 
 const WARMUP_VUS = Math.max(1, Math.ceil(TARGET_VUS * 0.1));
 
+/**
+ * k6 Options
+ *
+ * @property {object[]} stages - An array of objects that specify the virtual user (VU) load progression.
+ * @property {string} stages[].duration - The duration for which the VUs will be active.
+ * @property {number} stages[].target - The number of VUs to ramp up or down to.
+ * @property {object} thresholds - An object that defines the pass/fail criteria for the test.
+ * @property {string[]} http_req_failed - An array with the failure rate threshold for HTTP requests.
+ * @property {string[]} http_req_duration - An array with the duration threshold for HTTP requests.
+ * @property {string[]} checks - An array with the success rate threshold for checks.
+ */
 export const options = {
 	stages: [
 		{ duration: '30s', target: WARMUP_VUS }, // Warm up
@@ -28,15 +40,18 @@ export const options = {
 		{ duration: '30s', target: 0 },          // Cooldown
 	],
 	thresholds: {
-		'http_req_failed{endpoint:get_events}': [`rate<${MAX_FAILURE_RATE}`],
+		'http_req_failed{endpoint:get_events}': ['rate<0.02'], // http errors should be less than 2%
 		'http_req_duration{endpoint:get_events}': [
-			`p(95)<${P95_MS}`,
-			`p(99)<${P99_MS}`,
+			'p(95)<1300', // 95% of requests should be below 1300ms
+			'p(99)<1500' // 99% of requests should be below 1500ms
 		],
-		'checks{endpoint:get_events}': ['rate>0.99'],
-	},
+		'checks{endpoint:get_events}': ['rate>0.99'] // 99% of checks must pass
+	}
 };
 
+/**
+ * The main test function that is executed by each VU.
+ */
 export default function () {
 	const url = `${BASE_URL}${EVENTS_PATH}`;
 	const res = http.get(url, {

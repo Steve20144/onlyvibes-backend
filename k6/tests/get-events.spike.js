@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
+// Base URL for the API, configurable via environment variables.
 const BASE_URL = (__ENV.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 const EVENTS_PATH = '/events/';
 
@@ -19,6 +20,17 @@ const REQUEST_TIMEOUT = String(__ENV.REQUEST_TIMEOUT || '10s');
 const REQUIRE_MIN_EVENTS = String(__ENV.REQUIRE_MIN_EVENTS || '1') === '1';
 const MIN_EVENTS = Number(__ENV.MIN_EVENTS || 20);
 
+/**
+ * k6 Options
+ *
+ * @property {object[]} stages - An array of objects that specify the virtual user (VU) load progression.
+ * @property {string} stages[].duration - The duration for which the VUs will be active.
+ * @property {number} stages[].target - The number of VUs to ramp up or down to.
+ * @property {object} thresholds - An object that defines the pass/fail criteria for the test.
+ * @property {string[]} http_req_failed - An array with the failure rate threshold for HTTP requests.
+ * @property {string[]} http_req_duration - An array with the duration threshold for HTTP requests.
+ * @property {string[]} checks - An array with the success rate threshold for checks.
+ */
 export const options = {
     stages: [
         // Establish a small baseline
@@ -42,6 +54,9 @@ export const options = {
     },
 };
 
+/**
+ * The main test function that is executed by each VU.
+ */
 export default function () {
 	const url = `${BASE_URL}${EVENTS_PATH}`;
 	const res = http.get(url, {

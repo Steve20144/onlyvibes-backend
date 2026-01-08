@@ -9,16 +9,25 @@ import {
   getLikedEventsByUserService
 } from '../services/eventService.js';
 
+/**
+ * Logs debug messages for the event controller if debugging is enabled.
+ * @param {...any} args - The messages to log.
+ */
 const logEventControllerDebug = (...args) => {
   if (process.env.DEBUG_EVENTS === 'true' || process.env.DEBUG === 'true') {
     console.log('[EVENT_CONTROLLER]', ...args);
   }
 };
 
+/**
+ * Logs error messages for the event controller.
+ * @param {...any} args - The error messages to log.
+ */
 const logEventControllerError = (...args) => {
   console.error('[EVENT_CONTROLLER]', ...args);
 };
 
+// A set of fields that are permitted to be updated on an event.
 const editableEventFields = new Set([
   'title',
   'description',
@@ -28,17 +37,30 @@ const editableEventFields = new Set([
   'imageUrl'
 ]);
 
+/**
+ * Creates a validation error object with a given message.
+ * @param {string} message - The error message.
+ * @returns {Error} An error object with a 400 status code.
+ */
 const validationError = (message) => {
   const err = new Error(message);
   err.statusCode = 400;
   return err;
 };
 
+/**
+ * Checks if a value is a valid MongoDB ObjectId string.
+ * @param {string} value - The value to check.
+ * @returns {boolean} True if the value is a valid ObjectId, false otherwise.
+ */
 const isValidObjectId = (value) =>
   typeof value === 'string' && mongoose.Types.ObjectId.isValid(value);
 
 /**
- * Validate and return a Mongo ObjectId string.
+ * Parses and validates an event ID from a request parameter.
+ * @param {string} value - The event ID to parse.
+ * @returns {string} The validated event ID.
+ * @throws {Error} If the event ID is invalid.
  */
 const parseEventId = (value) => {
   if (!isValidObjectId(value)) {
@@ -47,6 +69,12 @@ const parseEventId = (value) => {
   return value;
 };
 
+/**
+ * Sanitizes and validates the payload for updating an event.
+ * @param {object} payload - The request body containing event updates.
+ * @returns {object} The sanitized update object.
+ * @throws {Error} If the payload is invalid or contains disallowed fields.
+ */
 const sanitizeEventUpdates = (payload = {}) => {
   if (!payload || typeof payload !== 'object') {
     throw validationError('Request body must be a JSON object.');
@@ -150,7 +178,12 @@ const sanitizeEventUpdates = (payload = {}) => {
 };
 
 /**
- * List events (optionally filtered).
+ * Handles the request to list all events, with optional filtering.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} A JSON response with the list of events.
  */
 export const listEvents = async (req, res, next) => {
   try {
@@ -188,7 +221,12 @@ export const listEvents = async (req, res, next) => {
 };
 
 /**
- * Get one event by id.
+ * Retrieves a single event by its ID.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} The event data or an error message.
  */
 export const getEventById = async (req, res, next) => {
   try {
@@ -223,7 +261,12 @@ export const getEventById = async (req, res, next) => {
 };
 
 /**
- * Create a new event.
+ * Handles the creation of a new event.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} The created event data.
  */
 export const createEvent = async (req, res, next) => {
   try {
@@ -261,7 +304,12 @@ export const createEvent = async (req, res, next) => {
 };
 
 /**
- * Update an existing event.
+ * Updates an existing event by its ID.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} The updated event data.
  */
 export const updateEvent = async (req, res, next) => {
   try {
@@ -298,7 +346,12 @@ export const updateEvent = async (req, res, next) => {
 };
 
 /**
- * Delete an event by id.
+ * Deletes an event by its ID.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} A confirmation message.
  */
 export const deleteEvent = async (req, res, next) => {
   try {
@@ -332,8 +385,12 @@ export const deleteEvent = async (req, res, next) => {
 };
 
 /**
- * GET /events/liked/:userId - list events liked by a user
- * (placeholder implementation – depends on how you model likes)
+ * Retrieves a list of events that a user has liked.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} A list of liked events.
  */
 export const listLikedEvents = async (req, res, next) => {
   try {
