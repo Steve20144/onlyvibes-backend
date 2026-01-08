@@ -1,11 +1,24 @@
 // src/tests/authMiddleware.test.js
+/**
+ * Unit tests for the authentication middleware.
+ * 
+ * This test suite validates:
+ * - Authorization header presence and format (Bearer token)
+ * - JWT token verification and decoding
+ * - User attachment to request object on successful authentication
+ * - Error responses for missing, malformed, or invalid tokens
+ * 
+ * Uses a custom mock helper to simulate Express req/res/next objects.
+ */
 import jwt from 'jsonwebtoken';
 import Account from '../models/account.js';
 import { authenticate } from '../middleware/auth.js';
 import createTestDb from './utils/testDb.js';
 
+// Initialize in-memory MongoDB test database
 const testDb = createTestDb();
 
+// Setup: Configure JWT secret and connect to test database
 beforeAll(async () => {
   if (!process.env.JWT_SECRET) {
     process.env.JWT_SECRET = 'test-secret';
@@ -14,15 +27,22 @@ beforeAll(async () => {
   await testDb.connect();
 });
 
+// Cleanup: Disconnect from test database
 afterAll(async () => {
   await testDb.disconnect();
 });
 
+// Reset: Clear database before each test
 beforeEach(async () => {
   await testDb.clearDatabase();
 });
 
-// tiny helper to build fake req/res
+/**
+ * Helper function to create mock Express req/res/next objects.
+ * 
+ * @param {string} authorizationHeader - Optional Authorization header value
+ * @returns {Object} Mock objects and utility function to check if next() was called
+ */
 const createMock = (authorizationHeader) => {
   const req = { headers: {} };
 
@@ -51,7 +71,12 @@ const createMock = (authorizationHeader) => {
   return { req, res, next, getNextCalled: () => nextCalled };
 };
 
+/**
+ * Test suite for the authenticate middleware.
+ * Validates JWT-based authentication and error handling.
+ */
 describe('authenticate middleware', () => {
+  // Test missing Authorization header - should return 401
   test('returns 401 when Authorization header is missing', () => {
     const { req, res, next, getNextCalled } = createMock();
 
@@ -63,6 +88,7 @@ describe('authenticate middleware', () => {
     expect(getNextCalled()).toBe(false);
   });
 
+  // Test Authorization header format - must be 'Bearer <token>'
   test('returns 401 when Authorization header format is invalid', () => {
     const { req, res, next, getNextCalled } = createMock('Token abc123');
 
@@ -73,6 +99,7 @@ describe('authenticate middleware', () => {
     expect(getNextCalled()).toBe(false);
   });
 
+  // Test JWT verification - should reject invalid or expired tokens
   test('returns 401 when token is invalid', () => {
     const { req, res, next, getNextCalled } = createMock('Bearer invalidtoken');
 
@@ -83,6 +110,7 @@ describe('authenticate middleware', () => {
     expect(getNextCalled()).toBe(false);
   });
 
+  // Test successful authentication - should attach user to req and call next()
   test('calls next and attaches user when token is valid', async () => {
     const account = await Account.create({
       username: 'jwt-user',

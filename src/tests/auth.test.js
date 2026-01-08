@@ -1,12 +1,24 @@
 // src/tests/auth.test.js
+/**
+ * Integration tests for authentication endpoints.
+ * 
+ * This test suite validates:
+ * - User signup (POST /auth/signup) with field validation
+ * - User login (POST /auth/login) with credential verification
+ * - JWT token generation and validation
+ * - Email uniqueness constraints
+ * - Password hashing and verification
+ */
 import request from 'supertest';
 import bcrypt from 'bcrypt';
 import app from '../app.js';
 import Account from '../models/account.js';
 import createTestDb from './utils/testDb.js';
 
+// Initialize in-memory MongoDB test database
 const testDb = createTestDb();
 
+// Setup: Configure JWT secret and connect to test database
 beforeAll(async () => {
   if (!process.env.JWT_SECRET) {
     process.env.JWT_SECRET = 'test-secret';
@@ -15,16 +27,23 @@ beforeAll(async () => {
   await testDb.connect();
 });
 
+// Cleanup: Disconnect from test database
 afterAll(async () => {
   await testDb.disconnect();
 });
 
+// Reset: Clear database before each test for isolation
 beforeEach(async () => {
   await testDb.clearDatabase();
 });
 
+/**
+ * Test suite for authentication API endpoints.
+ * Covers user registration and login workflows.
+ */
 describe('Auth API', () => {
   
+  // Test signup validation - all required fields must be present
   test('POST /auth/signup fails with missing fields', async () => {
     const res = await request(app)
       .post('/auth/signup')
@@ -38,6 +57,7 @@ describe('Auth API', () => {
     expect(res.body.message).toMatch(/username, email, and password are required/i);
   });
 
+  // Test successful signup - should create account and return JWT token
   test('POST /auth/signup persists user and returns JWT', async () => {
     const payload = {
       username: 'new-user',
@@ -61,6 +81,7 @@ describe('Auth API', () => {
     expect(account.username).toBe(payload.username);
   });
 
+  // Test email uniqueness - should reject duplicate email addresses
   test('POST /auth/signup rejects duplicate emails', async () => {
     await Account.create({
       username: 'existing',
@@ -79,6 +100,7 @@ describe('Auth API', () => {
     expect(res.body.message).toBe('Email already in use');
   });
 
+  // Test successful login - should verify credentials and return JWT
   test('POST /auth/login authenticates valid credentials', async () => {
     const password = 'Password123!';
     await Account.create({
@@ -99,6 +121,7 @@ describe('Auth API', () => {
     expect(res.body.user.email).toBe('login@example.com');
   });
 
+  // Test login security - should reject incorrect passwords
   test('POST /auth/login rejects invalid credentials', async () => {
     await Account.create({
       username: 'login-user',

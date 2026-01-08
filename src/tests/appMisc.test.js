@@ -1,14 +1,28 @@
+/**
+ * Integration tests for application infrastructure and middleware.
+ * 
+ * This test suite validates:
+ * - Health check endpoint (GET /health)
+ * - Request logging middleware with sensitive data masking
+ * - 404 handler for unknown routes
+ * - Centralized error handler with custom error details
+ * 
+ * Uses module mocking to isolate infrastructure components.
+ */
 import request from 'supertest';
 import { jest } from '@jest/globals';
 
+// Mock the logger module to track logging calls
 const logRequestMock = jest.fn();
 const listEventsServiceMock = jest.fn().mockResolvedValue([]);
 
+// Mock logger module to intercept and verify logging calls
 jest.unstable_mockModule('../utils/logger.js', () => ({
   logRequest: logRequestMock,
   logError: jest.fn()
 }));
 
+// Mock event service to control responses for error handling tests
 jest.unstable_mockModule('../services/eventService.js', () => ({
   listEventsService: listEventsServiceMock,
   getEventByIdService: jest.fn(),
@@ -18,16 +32,23 @@ jest.unstable_mockModule('../services/eventService.js', () => ({
   getLikedEventsByUserService: jest.fn()
 }));
 
+// Import app after mocks are configured
 const app = (await import('../app.js')).default;
 const eventService = await import('../services/eventService.js');
 
+/**
+ * Test suite for application infrastructure components.
+ * Validates core middleware and error handling behavior.
+ */
 describe('App infrastructure endpoints', () => {
+  // Reset mocks before each test to ensure clean state
   beforeEach(() => {
     logRequestMock.mockClear();
     listEventsServiceMock.mockReset();
     listEventsServiceMock.mockResolvedValue([]);
   });
 
+  // Test health check endpoint - should return 200 with status 'ok'
   test('GET /health returns service heartbeat payload', async () => {
     const res = await request(app).get('/health');
 
@@ -40,6 +61,7 @@ describe('App infrastructure endpoints', () => {
     });
   });
 
+  // Test request logging middleware - should mask sensitive fields like 'password'
   test('request logging middleware masks sensitive fields before logging', async () => {
     await request(app).post('/non-existent').send({
       password: 'super-secret',
@@ -53,6 +75,7 @@ describe('App infrastructure endpoints', () => {
     expect(logged).not.toContain('super-secret');
   });
 
+  // Test 404 handler - should return consistent JSON error format
   test('unknown routes trigger the JSON 404 handler', async () => {
     const res = await request(app).get('/totally-missing');
 
@@ -65,6 +88,7 @@ describe('App infrastructure endpoints', () => {
     });
   });
 
+  // Test centralized error handler - should surface custom status codes and error details
   test('centralized error handler surfaces status, message, and details', async () => {
     const err = new Error('Intentional failure');
     err.statusCode = 418;

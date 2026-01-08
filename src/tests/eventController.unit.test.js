@@ -1,7 +1,20 @@
 // src/tests/eventController.unit.test.js
+/**
+ * Unit tests for event controller functions.
+ * 
+ * This test suite validates:
+ * - Controller-level input validation and sanitization
+ * - Request payload normalization (trimming, type conversion)
+ * - Error handling and forwarding to Express error middleware
+ * - Service layer integration without database dependencies
+ * - Response formatting for various scenarios (success, not found, validation errors)
+ * 
+ * Uses mocked event service to isolate controller logic.
+ */
 import { jest } from '@jest/globals';
 import mongoose from 'mongoose';
 
+// Mock event service to isolate controller logic from database operations
 jest.unstable_mockModule('../services/eventService.js', () => ({
   listEventsService: jest.fn(),
   getEventByIdService: jest.fn(),
@@ -21,16 +34,26 @@ const {
 } = await import('../controllers/eventController.js');
 const eventService = await import('../services/eventService.js');
 
+/**
+ * Helper function to create a mock Express response object.
+ * Provides chainable status() and json() methods for testing.
+ */
 const buildRes = () => ({
   status: jest.fn().mockReturnThis(),
   json: jest.fn()
 });
 
+/**
+ * Test suite for event controller validation helpers.
+ * Validates input sanitization and error handling before service calls.
+ */
 describe('eventController validation helpers', () => {
+  // Reset mocks after each test to ensure test isolation
   afterEach(() => {
     jest.clearAllMocks();
   });
 
+  // Test userId parameter validation - must be provided and non-empty
   test('listLikedEvents rejects missing userId parameters', async () => {
     eventService.getLikedEventsByUserService.mockResolvedValue([]);
     const req = { params: {} };
@@ -53,6 +76,7 @@ describe('eventController validation helpers', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  // Test request body type validation - must be an object, not null or array
   test('updateEvent rejects non-object payloads before hitting service', async () => {
     const validId = new mongoose.Types.ObjectId().toString();
     eventService.updateEventService.mockResolvedValue(null);
@@ -77,6 +101,7 @@ describe('eventController validation helpers', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  // Test payload sanitization - should trim strings and convert category formats
   test('updateEvent sanitizes payloads before forwarding to the service', async () => {
     const validId = new mongoose.Types.ObjectId().toString();
     const sanitizedResponse = {
@@ -119,6 +144,7 @@ describe('eventController validation helpers', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
+  // Test 404 handling - should surface not-found error when service returns null
   test('updateEvent surfaces not found errors when the service returns null', async () => {
     const validId = new mongoose.Types.ObjectId().toString();
     eventService.updateEventService.mockResolvedValue(null);
@@ -143,6 +169,7 @@ describe('eventController validation helpers', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  // Test empty result messaging - should provide friendly message when no likes exist
   test('listLikedEvents trims userId and returns empty message when no likes exist', async () => {
     eventService.getLikedEventsByUserService.mockResolvedValue([]);
 
@@ -163,6 +190,7 @@ describe('eventController validation helpers', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
+  // Test positive result messaging - should return appropriate message with data
   test('listLikedEvents returns a positive message when liked events exist', async () => {
     const liked = [{ id: 'event-1' }];
     eventService.getLikedEventsByUserService.mockResolvedValue(liked);
@@ -182,6 +210,7 @@ describe('eventController validation helpers', () => {
     );
   });
 
+  // Test userId type validation - must be a string, not a number
   test('listLikedEvents rejects non-string user ids', async () => {
     const req = { params: { userId: 123 } };
     const res = buildRes();
@@ -204,11 +233,16 @@ describe('eventController validation helpers', () => {
   });
 });
 
+/**
+ * Test suite for listEvents controller.
+ * Validates event listing with filters and messaging.
+ */
 describe('listEvents controller', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
+  // Test successful event listing - should return events with default message
   test('returns events and default message when service succeeds', async () => {
     eventService.listEventsService.mockResolvedValue([{ id: '1' }]);
     const req = { query: {} };
@@ -231,6 +265,7 @@ describe('listEvents controller', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
+  // Test empty results with filters - should provide helpful filter adjustment message
   test('returns friendly filter message when no events match filters', async () => {
     eventService.listEventsService.mockResolvedValue([]);
     const req = { query: { category: 'music', location: 'ath' } };
@@ -251,6 +286,7 @@ describe('listEvents controller', () => {
     );
   });
 
+  // Test error handling - should forward service errors to Express error middleware
   test('forwards service errors to next', async () => {
     const error = new Error('db down');
     eventService.listEventsService.mockRejectedValue(error);
@@ -268,11 +304,16 @@ describe('listEvents controller', () => {
   });
 });
 
+/**
+ * Test suite for getEventById controller.
+ * Validates single event retrieval and ID validation.
+ */
 describe('getEventById controller', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
+  // Test ID format validation - should reject invalid ObjectId strings
   test('rejects invalid ids before hitting the service', async () => {
     const req = { params: { id: 'bad-id' } };
     const res = buildRes();
@@ -292,6 +333,7 @@ describe('getEventById controller', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  // Test successful single event retrieval
   test('returns the event when found', async () => {
     const id = new mongoose.Types.ObjectId().toString();
     const event = { id, title: 'Party' };
@@ -313,6 +355,7 @@ describe('getEventById controller', () => {
     );
   });
 
+  // Test 404 handling when event doesn't exist
   test('surfaces not-found errors from the service', async () => {
     const id = new mongoose.Types.ObjectId().toString();
     eventService.getEventByIdService.mockResolvedValue(null);
@@ -334,11 +377,16 @@ describe('getEventById controller', () => {
   });
 });
 
+/**
+ * Test suite for createEvent controller.
+ * Validates event creation with authenticated user handling.
+ */
 describe('createEvent controller', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
+  // Test authenticated user preference - should use req.user.id over body.creatorId
   test('prefers the authenticated user id over body creatorId', async () => {
     const creatorId = new mongoose.Types.ObjectId().toString();
     const event = { id: '1', title: 'New Event' };
@@ -374,6 +422,7 @@ describe('createEvent controller', () => {
     );
   });
 
+  // Test creatorId requirement - must be provided and valid
   test('rejects when creatorId is missing or invalid', async () => {
     const req = {
       body: {
@@ -399,6 +448,7 @@ describe('createEvent controller', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  // Test error propagation from service layer
   test('forwards service errors', async () => {
     const creatorId = new mongoose.Types.ObjectId().toString();
     const error = new Error('insert failed');
@@ -425,11 +475,16 @@ describe('createEvent controller', () => {
   });
 });
 
+/**
+ * Test suite for deleteEvent controller.
+ * Validates event deletion with ID validation.
+ */
 describe('deleteEvent controller', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
+  // Test ID validation before deletion
   test('rejects invalid ids before calling service', async () => {
     const req = { params: { id: 'bad' } };
     const res = buildRes();
@@ -449,6 +504,7 @@ describe('deleteEvent controller', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  // Test 404 when deleting non-existent event
   test('surfaces not found errors when delete returns false', async () => {
     const id = new mongoose.Types.ObjectId().toString();
     eventService.deleteEventService.mockResolvedValue(false);
@@ -470,6 +526,7 @@ describe('deleteEvent controller', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  // Test successful deletion with proper response
   test('responds with success when delete returns true', async () => {
     const id = new mongoose.Types.ObjectId().toString();
     eventService.deleteEventService.mockResolvedValue(true);

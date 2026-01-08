@@ -61,6 +61,7 @@ app.use((req, res, next) => {
  * @desc    Health check endpoint to verify that the API is running.
  * @access  Public
  */
+// eslint-disable-next-line no-unused-vars
 app.get('/health', (req, res) => {
   return res.status(200).json({
     success: true,
@@ -73,6 +74,10 @@ app.get('/health', (req, res) => {
 /**
  * @description Mounts the application's routes.
  * Each set of routes is handled by a separate router file.
+ * - accountRoutes is mounted at /accounts
+ * - eventRoutes is mounted at /events
+ * - reviewRoutes defines its own base path internally (as before)
+ * - authRoutes defines /auth/signup and /auth/login inside the router
  */
 app.use('/accounts', accountRoutes);
 app.use('/events', eventRoutes);
@@ -97,6 +102,7 @@ app.use((req, res) => {
  * It catches and processes errors from any part of the application.
  * It sends a formatted JSON response based on the error type.
  */
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
 

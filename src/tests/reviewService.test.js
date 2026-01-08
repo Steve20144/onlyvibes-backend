@@ -1,4 +1,17 @@
 // src/tests/reviewService.test.js
+/**
+ * Unit tests for review service layer.
+ * 
+ * This test suite validates:
+ * - Database connectivity checks and graceful degradation
+ * - CRUD operations for reviews with proper error handling
+ * - Document normalization and field defaults
+ * - Event existence validation
+ * - Duplicate review detection
+ * - Reviewed events aggregation with missing event handling
+ * 
+ * Uses mocked Review and Event models to isolate service logic.
+ */
 import mongoose from 'mongoose';
 import { jest } from '@jest/globals';
 import Review from '../models/review.js';
@@ -15,6 +28,10 @@ import {
   updateReviewService
 } from '../services/reviewService.js';
 
+/**
+ * Creates a mock Review document with toObject() method.
+ * Used to simulate Mongoose documents in tests.
+ */
 const createMockReviewDoc = (overrides = {}) => {
   const base = {
     _id: overrides._id ?? new mongoose.Types.ObjectId(),
@@ -37,7 +54,12 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
+/**
+ * Test suite for deleteReviewService.
+ * Validates deletion logic and return values.
+ */
 describe('deleteReviewService', () => {
+  // Test database availability check
   test('returns false when the database is unavailable', async () => {
     jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(false);
     const spy = jest.spyOn(Review, 'findOneAndDelete');
@@ -64,13 +86,25 @@ describe('deleteReviewService', () => {
   });
 });
 
+/**
+ * Test suite for getReviewedEventsByAccountService.
+ * Validates review aggregation and event metadata joining.
+ */
 describe('getReviewedEventsByAccountService', () => {
+  /**
+   * Helper to mock Review.find().sort() chain.
+   * Returns a jest mock for the sort method.
+   */
   const mockSortedFind = (docs) => {
     const sortMock = jest.fn().mockResolvedValue(docs);
     jest.spyOn(Review, 'find').mockReturnValue({ sort: sortMock });
     return sortMock;
   };
 
+  /**
+   * Nested test suite for database disconnection scenarios.
+   * Tests that all service methods handle offline state gracefully.
+   */
   describe('database guard clauses', () => {
     const blockedCalls = [
       {

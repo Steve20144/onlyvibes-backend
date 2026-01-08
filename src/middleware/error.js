@@ -19,11 +19,9 @@ function notFound(req, res) {
  * The stack trace is included in non-production environments for easier debugging.
  *
  * @param {Error} err - The error object.
- * @param {import('express').Request} req - The Express request object.
  * @param {import('express').Response} res - The Express response object.
- * @param {import('express').NextFunction} next - The Express next middleware function.
  */
-function errorHandler(err, req, res, next) {
+function errorHandler(err, res) {
   console.error('Error handler caught:', err);
 
   const status = err.status || err.statusCode || 500;
