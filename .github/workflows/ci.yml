@@ -87,9 +87,13 @@ jobs:
           BASE_URL: http://localhost:3000
           REQUIRE_MIN_EVENTS: '1'
           MIN_EVENTS: '100'
-          TARGET_RPS: '100'
+          TARGET_VUS: '120'
+          SPIKE_VUS: '300'
+          SLEEP_SECONDS: '0'
+          REQUEST_TIMEOUT: '10s'
         run: |
           k6 run k6/tests/get-events.load.js
+          k6 run k6/tests/get-events.spike.js
 
 
       - name: Cleanup seeded events
