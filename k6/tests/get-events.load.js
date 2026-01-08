@@ -40,7 +40,7 @@ export const options = {
 		{ duration: '30s', target: 0 },          // Cooldown
 	],
 	thresholds: {
-		'http_req_failed{endpoint:get_events}': ['rate<0.02'], // http errors should be less than 2%
+		'http_req_failed{endpoint:get_events}': ['rate<0.01'], // http errors should be less than 2%
 		'http_req_duration{endpoint:get_events}': [
 			'p(95)<1300', // 95% of requests should be below 1300ms
 			'p(99)<1500' // 99% of requests should be below 1500ms
