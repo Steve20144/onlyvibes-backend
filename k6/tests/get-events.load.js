@@ -6,7 +6,7 @@ const EVENTS_PATH = '/events/';
 
 // CI Regression Test Configuration (VU-driven; aligned with assignment wording)
 // Calibrate these values after 5-6 runs on GitHub Actions runners.
-const TARGET_VUS = Number(__ENV.TARGET_VUS || 120);
+const TARGET_VUS = Number(__ENV.TARGET_VUS || 160);
 const SLEEP_SECONDS = Number(__ENV.SLEEP_SECONDS || 0);
 
 const P95_MS = Number(__ENV.P95_MS || 1500);

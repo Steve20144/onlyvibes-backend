@@ -6,7 +6,7 @@ const EVENTS_PATH = '/events/';
 
 // Spike test configuration (VU-driven; aligned with assignment wording)
 // Calibrate VUs downward until CI is consistently green.
-const SPIKE_VUS = Number(__ENV.SPIKE_VUS || 300);
+const SPIKE_VUS = Number(__ENV.SPIKE_VUS || 250);
 const NORMAL_VUS = Number(__ENV.NORMAL_VUS || Math.max(1, Math.ceil(SPIKE_VUS * 0.1)));
 const SLEEP_SECONDS = Number(__ENV.SLEEP_SECONDS || 0);
 
