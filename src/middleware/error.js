@@ -1,7 +1,11 @@
 // src/middleware/error.js
 
 /**
- * 404 handler for unmatched routes.
+ * Handles requests for routes that are not found (404).
+ * This middleware is typically used at the end of the middleware stack.
+ *
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
  */
 function notFound(req, res) {
   res.status(404).json({
@@ -10,15 +14,16 @@ function notFound(req, res) {
 }
 
 /**
- * Generic error handler.
- * 
- * Usage: pass errors to `next(err)` in controllers/services.
- * 
- * Example error object fields:
- * - err.status or err.statusCode for custom status
- * - err.message for human-readable error
+ * A generic error-handling middleware for Express.
+ * It catches errors passed to `next(err)` and sends a formatted JSON response.
+ * The stack trace is included in non-production environments for easier debugging.
+ *
+ * @param {Error} err - The error object.
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
  */
-function errorHandler(err, res) {
+function errorHandler(err, req, res, next) {
   console.error('Error handler caught:', err);
 
   const status = err.status || err.statusCode || 500;
@@ -41,7 +46,7 @@ function errorHandler(err, res) {
   res.status(status).json(payload);
 }
 
-module.exports = {
+export {
   notFound,
   errorHandler,
 };

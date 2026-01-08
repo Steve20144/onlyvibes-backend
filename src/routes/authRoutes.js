@@ -4,10 +4,18 @@ import { signup, login } from '../controllers/authController.js';
 
 const router = express.Router();
 
-// POST /auth/signup
+/**
+ * @route   POST /auth/signup
+ * @desc    Register a new user account
+ * @access  Public
+ */
 router.post('/auth/signup', signup);
 
-// POST /auth/login
+/**
+ * @route   POST /auth/login
+ * @desc    Authenticate a user and return a JWT
+ * @access  Public
+ */
 router.post('/auth/login', login);
 
 export default router;

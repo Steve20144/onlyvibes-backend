@@ -2,6 +2,10 @@
 import Account from '../models/account.js';         // default export
 import { isDbConnected } from '../utils/dbHealth.js';
 
+/**
+ * Ensures that the database is connected before proceeding.
+ * @throws {Error} If the database is not connected.
+ */
 const ensureDbConnected = () => {
   if (!isDbConnected()) {
     const err = new Error('Database not available');
@@ -10,6 +14,12 @@ const ensureDbConnected = () => {
   }
 };
 
+/**
+ * Checks if an email address is already in use.
+ * @async
+ * @param {string} email - The email address to check.
+ * @throws {Error} If the email is already in use.
+ */
 const ensureEmailAvailable = async (email) => {
   const normalizedEmail = typeof email === 'string' ? email.toLowerCase() : email;
   const existing = await Account.findOne({ email: normalizedEmail });
@@ -22,10 +32,10 @@ const ensureEmailAvailable = async (email) => {
 };
 
 /**
- * Normalize a Mongoose document to a plain JS object and ensure `id` field exists.
- * In Mongo mode, we expose `_id` as `id` for the API.
- * @param {object} doc
- * @returns {object|null}
+ * Normalizes a Mongoose account document into a plain JavaScript object.
+ * It converts `_id` to `id` and removes the version key `__v`.
+ * @param {object} doc - The Mongoose document to normalize.
+ * @returns {object|null} The normalized object, or null if the input is falsy.
  */
 const normalizeAccountDoc = (doc) => {
   if (!doc) return null;
@@ -42,10 +52,16 @@ const normalizeAccountDoc = (doc) => {
 };
 
 /**
- * Create a new account (user or venue).
+ * Creates a new user or venue account.
  * @async
- * @param {{email:string,name:string,password:string,role:string,preferences?:string[],venueDetails?:object}} payload
- * @returns {Promise<object>}
+ * @param {object} payload - The data for the new account.
+ * @param {string} payload.email - The user's email address.
+ * @param {string} payload.name - The user's name.
+ * @param {string} payload.password - The user's password.
+ * @param {string} payload.role - The role of the account ('user' or 'venue').
+ * @param {string[]} [payload.preferences] - An array of user preferences.
+ * @param {object} [payload.venueDetails] - Additional details for venue accounts.
+ * @returns {Promise<object>} A promise that resolves to the newly created account object.
  */
 export const createAccountService = async (payload) => {
   const now = new Date();
@@ -74,10 +90,10 @@ export const createAccountService = async (payload) => {
 };
 
 /**
- * Get an account by id.
+ * Retrieves an account by its ID.
  * @async
- * @param {string} id  - In Mongo mode this is `_id`
- * @returns {Promise<object|null>}
+ * @param {string} id - The ID of the account to retrieve.
+ * @returns {Promise<object|null>} A promise that resolves to the account object, or null if not found.
  */
 export const getAccountByIdService = async (id) => {
   ensureDbConnected();
@@ -92,11 +108,11 @@ export const getAccountByIdService = async (id) => {
 };
 
 /**
- * Update an account by id.
+ * Updates an account by its ID.
  * @async
- * @param {string} id
- * @param {object} updates
- * @returns {Promise<object|null>}
+ * @param {string} id - The ID of the account to update.
+ * @param {object} updates - An object containing the fields to update.
+ * @returns {Promise<object|null>} A promise that resolves to the updated account object, or null if not found.
  */
 export const updateAccountService = async (id, updates) => {
   const now = new Date();
@@ -118,10 +134,10 @@ export const updateAccountService = async (id, updates) => {
 };
 
 /**
- * Delete an account by id.
+ * Deletes an account by its ID.
  * @async
- * @param {string} id
- * @returns {Promise<boolean>}
+ * @param {string} id - The ID of the account to delete.
+ * @returns {Promise<boolean>} A promise that resolves to true if the deletion was successful, false otherwise.
  */
 export const deleteAccountService = async (id) => {
   ensureDbConnected();
