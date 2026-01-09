@@ -1,3 +1,6 @@
+
+/* spike test = resilience gate (tolerant, non-flaky) */
+
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -7,13 +10,13 @@ const EVENTS_PATH = '/events/';
 
 // Spike test configuration (VU-driven; aligned with assignment wording)
 // Calibrate VUs downward until CI is consistently green.
-const SPIKE_VUS = Number(__ENV.SPIKE_VUS || 200);
+const SPIKE_VUS = Number(__ENV.SPIKE_VUS || 150);
 const NORMAL_VUS = Number(__ENV.NORMAL_VUS || Math.max(1, Math.ceil(SPIKE_VUS * 0.1)));
-const SLEEP_SECONDS = Number(__ENV.SLEEP_SECONDS || 0.2);
+const SLEEP_SECONDS = Number(__ENV.SLEEP_SECONDS || 0);
 
-const P95_MS_SPIKE = Number(__ENV.P95_MS_SPIKE || 2000);
-const P99_MS_SPIKE = Number(__ENV.P99_MS_SPIKE || 4000);
-const MAX_FAILURE_RATE_SPIKE = Number(__ENV.MAX_FAILURE_RATE_SPIKE || 0.05);
+const P95_MS_SPIKE = Number(__ENV.P95_MS_SPIKE || 1500);
+const P99_MS_SPIKE = Number(__ENV.P99_MS_SPIKE || 2500);
+const MAX_FAILURE_RATE_SPIKE = Number(__ENV.MAX_FAILURE_RATE_SPIKE || 0.02);
 const REQUEST_TIMEOUT = String(__ENV.REQUEST_TIMEOUT || '10s');
 
 // "CI realistic" guardrails: prevent false-greens caused by an empty/tiny dataset in CI.
@@ -45,12 +48,12 @@ export const options = {
         { duration: '20s', target: 0 },
     ],
     thresholds: {
-        'http_req_failed{endpoint:get_events_spike}': [`rate<${MAX_FAILURE_RATE_SPIKE}`],
+        'http_req_failed{endpoint:get_events_spike}': [`rate<${MAX_FAILURE_RATE_SPIKE}`], // default: <2%
         'http_req_duration{endpoint:get_events_spike}': [
-            `p(95)<${P95_MS_SPIKE}`,
-            `p(99)<${P99_MS_SPIKE}`,
+            `p(95)<${P95_MS_SPIKE}`, // default: <1500ms
+            `p(99)<${P99_MS_SPIKE}`, // default: <2500ms
         ],
-        'checks{endpoint:get_events_spike}': ['rate>0.95'],
+        'checks{endpoint:get_events_spike}': ['rate>0.97'], // 97% of checks must pass
     },
 };
 

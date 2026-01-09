@@ -1,3 +1,6 @@
+
+/* load test = sensitive regression detector (tighter) */
+
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -7,12 +10,13 @@ const EVENTS_PATH = '/events/';
 
 // CI Regression Test Configuration (VU-driven; aligned with assignment wording)
 // Calibrate these values after 5-6 runs on GitHub Actions runners.
-const TARGET_VUS = Number(__ENV.TARGET_VUS || 120);
+const TARGET_VUS = Number(__ENV.TARGET_VUS || 240);
 const SLEEP_SECONDS = Number(__ENV.SLEEP_SECONDS || 0);
 
-const P95_MS = Number(__ENV.P95_MS || 1500);
-const P99_MS = Number(__ENV.P99_MS || 2500);
-const MAX_FAILURE_RATE = Number(__ENV.MAX_FAILURE_RATE || 0.02);
+const P95_MS = Number(__ENV.P95_MS || 1300);
+const P99_MS = Number(__ENV.P99_MS || 1500);
+const MAX_FAILURE_RATE = Number(__ENV.MAX_FAILURE_RATE || 0.01);
+const MIN_CHECK_RATE = Number(__ENV.MIN_CHECK_RATE || 0.99);
 const REQUEST_TIMEOUT = String(__ENV.REQUEST_TIMEOUT || '10s'); // Fail fast on hangs/timeouts (k6 default is ~60s)
 
 // "CI realistic" guardrails: prevent false-greens caused by an empty/tiny dataset in CI.
@@ -40,12 +44,12 @@ export const options = {
 		{ duration: '30s', target: 0 },          // Cooldown
 	],
 	thresholds: {
-		'http_req_failed{endpoint:get_events}': ['rate<0.01'], // http errors should be less than 2%
+		'http_req_failed{endpoint:get_events}': [`rate<${MAX_FAILURE_RATE}`],
 		'http_req_duration{endpoint:get_events}': [
-			'p(95)<1300', // 95% of requests should be below 1300ms
-			'p(99)<1500' // 99% of requests should be below 1500ms
+			`p(95)<${P95_MS}`,
+			`p(99)<${P99_MS}`
 		],
-		'checks{endpoint:get_events}': ['rate>0.99'] // 99% of checks must pass
+		'checks{endpoint:get_events}': [`rate>${MIN_CHECK_RATE}`]
 	}
 };
 
