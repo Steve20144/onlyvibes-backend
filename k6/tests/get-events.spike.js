@@ -31,6 +31,7 @@ const MIN_EVENTS = Number(__ENV.MIN_EVENTS || 20);
  * @property {string[]} http_req_duration - An array with the duration threshold for HTTP requests.
  * @property {string[]} checks - An array with the success rate threshold for checks.
  */
+
 export const options = {
     stages: [
         // Establish a small baseline
