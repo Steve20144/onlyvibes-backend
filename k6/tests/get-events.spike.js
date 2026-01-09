@@ -9,7 +9,7 @@ const EVENTS_PATH = '/events/';
 // Calibrate VUs downward until CI is consistently green.
 const SPIKE_VUS = Number(__ENV.SPIKE_VUS || 200);
 const NORMAL_VUS = Number(__ENV.NORMAL_VUS || Math.max(1, Math.ceil(SPIKE_VUS * 0.1)));
-const SLEEP_SECONDS = Number(__ENV.SLEEP_SECONDS || 0);
+const SLEEP_SECONDS = Number(__ENV.SLEEP_SECONDS || 0.2);
 
 const P95_MS_SPIKE = Number(__ENV.P95_MS_SPIKE || 2000);
 const P99_MS_SPIKE = Number(__ENV.P99_MS_SPIKE || 4000);
@@ -34,11 +34,11 @@ const MIN_EVENTS = Number(__ENV.MIN_EVENTS || 20);
 export const options = {
     stages: [
         // Establish a small baseline
-        { duration: '20s', target: NORMAL_VUS },
+        { duration: '10s', target: NORMAL_VUS },
         // Sudden spike
         { duration: '5s', target: SPIKE_VUS },
         // Hold briefly at peak
-        { duration: '25s', target: SPIKE_VUS },
+        { duration: '45s', target: SPIKE_VUS },
         // Recovery period under baseline traffic
         { duration: '60s', target: NORMAL_VUS },
         // Ramp down
