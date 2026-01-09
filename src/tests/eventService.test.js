@@ -1,3 +1,16 @@
+/**
+ * Unit tests for event service layer.
+ * 
+ * This test suite validates:
+ * - Database connectivity checks and graceful degradation
+ * - CRUD operations with proper error handling
+ * - Document normalization (converting _id to id, removing __v)
+ * - Category field normalization (string to array conversion)
+ * - Filter building for list queries (category, location with regex)
+ * - Null/missing data handling
+ * 
+ * Uses mocked Event model and dbHealth to isolate service logic.
+ */
 import mongoose from 'mongoose';
 import { jest } from '@jest/globals';
 import Event from '../models/event.js';
@@ -11,6 +24,10 @@ import {
 } from '../services/eventService.js';
 import dbHealth from '../utils/dbHealth.js';
 
+/**
+ * Creates a mock Event document with toObject() method.
+ * Used to simulate Mongoose documents in tests.
+ */
 const createMockDoc = (overrides = {}) => {
   const _id = overrides._id ?? new mongoose.Types.ObjectId();
   const baseDoc = {
@@ -24,15 +41,22 @@ const createMockDoc = (overrides = {}) => {
   };
 };
 
+// Restore all mocks after each test to ensure isolation
 afterEach(() => {
   jest.restoreAllMocks();
 });
 
+/**
+ * Test suite for service behavior when database is disconnected.
+ * All operations should fail gracefully with appropriate fallback values.
+ */
 describe('eventService when MongoDB is disconnected', () => {
+  // Mock database as disconnected for all tests in this suite
   beforeEach(() => {
     jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(false);
   });
 
+  // Test graceful degradation - should return empty array when DB is down
   test('listEventsService returns an empty array', async () => {
     const result = await listEventsService({ category: 'music' });
 
@@ -72,11 +96,17 @@ describe('eventService when MongoDB is disconnected', () => {
   });
 });
 
+/**
+ * Test suite for service behavior when database is connected.
+ * Validates proper CRUD operations and data transformations.
+ */
 describe('eventService when MongoDB is connected', () => {
+  // Mock database as connected for all tests in this suite
   beforeEach(() => {
     jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(true);
   });
 
+  // Test query building with filters and document normalization
   test('listEventsService applies filters and normalizes results', async () => {
     const docs = [
       createMockDoc({

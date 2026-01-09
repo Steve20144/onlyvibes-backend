@@ -1,4 +1,15 @@
 // src/tests/accounts.test.js
+/**
+ * Integration tests for the Accounts API endpoints.
+ * 
+ * This test suite validates:
+ * - Account creation (POST /accounts) with various roles and validation rules
+ * - Account retrieval (GET /accounts/:id) for existing and non-existent accounts
+ * - Account updates (PUT /accounts/:id) with field validation
+ * - Account deletion (DELETE /accounts/:id)
+ * - Database availability handling
+ * - Service layer error handling and document normalization
+ */
 import request from 'supertest';
 import { jest } from '@jest/globals';
 import app from '../app.js';
@@ -10,9 +21,17 @@ import {
 import dbHealth from '../utils/dbHealth.js';
 import createTestDb from './utils/testDb.js';
 
+// Initialize in-memory MongoDB test database
 const testDb = createTestDb();
 const mongoose = testDb.getMongoose();
+
+// Base account used across multiple tests
 let baseAccount;
+
+/**
+ * Seeds a base user account for test scenarios.
+ * Creates a verified user with sample preferences.
+ */
 const seedBaseAccount = async () => {
   baseAccount = await Account.create({
     username: 'partylover',
@@ -27,25 +46,34 @@ const seedBaseAccount = async () => {
   });
 };
 
+// Connect to in-memory MongoDB before all tests
 beforeAll(async () => {
   await testDb.connect();
 });
 
+// Disconnect from in-memory MongoDB after all tests
 afterAll(async () => {
   await testDb.disconnect();
 });
 
+// Clear database and seed base account before each test
 beforeEach(async () => {
   await testDb.clearDatabase();
 
   await seedBaseAccount();
 });
 
+// Restore all mocked functions after each test
 afterEach(() => {
   jest.restoreAllMocks();
 });
 
+/**
+ * Test suite for Accounts API endpoints.
+ * Covers CRUD operations and validation rules for user and venue accounts.
+ */
 describe('Accounts API', () => {
+  // Test successful account creation with valid data
   test('POST /accounts creates a new user account', async () => {
     const res = await request(app)
       .post('/accounts')
@@ -66,6 +94,7 @@ describe('Accounts API', () => {
     // Data is persisted in the in-memory MongoDB instance.
   });
 
+  // Test email validation - should reject malformed email addresses
   test('POST /accounts fails with invalid email', async () => {
     const res = await request(app)
       .post('/accounts')
@@ -81,6 +110,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toMatch(/Invalid or missing email/i);
   });
 
+  // Test required field validation - name is mandatory
   test('POST /accounts fails with missing name', async () => {
     const res = await request(app)
       .post('/accounts')
@@ -95,6 +125,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toMatch(/Invalid or missing name/i);
   });
 
+  // Test password length validation - minimum 4 characters required
   test('POST /accounts fails when password is shorter than 4 chars', async () => {
     const res = await request(app)
       .post('/accounts')
@@ -110,6 +141,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toMatch(/Password must be at least 4 characters/i);
   });
 
+  // Test role validation - must be either 'user' or 'venue'
   test('POST /accounts fails with missing or invalid role', async () => {
     const resMissing = await request(app)
       .post('/accounts')
@@ -135,6 +167,7 @@ describe('Accounts API', () => {
     expect(resInvalid.body.message).toMatch(/Role must be "user" or "venue"/i);
   });
 
+  // Test venue-specific account creation with additional venue details
   test('POST /accounts creates a venue account with venue details', async () => {
     const venuePayload = {
       email: 'venue-new@example.com',
@@ -157,6 +190,7 @@ describe('Accounts API', () => {
     expect(res.body.data.venueDetails).toMatchObject(venuePayload.venueDetails);
   });
 
+  // Test uniqueness constraint - email addresses must be unique
   test('POST /accounts rejects duplicate emails', async () => {
     const res = await request(app)
       .post('/accounts')
@@ -172,6 +206,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Email already in use');
   });
 
+  // Test successful retrieval of an existing account by ID
   test('GET /accounts/:id returns an existing account', async () => {
     const res = await request(app).get(`/accounts/${baseAccount._id}`);
 
@@ -181,6 +216,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Account retrieved');
   });
 
+  // Test 404 response when account ID doesn't exist
   test('GET /accounts/:id returns 404 for unknown id', async () => {
     const unknownId = new mongoose.Types.ObjectId().toString();
     const res = await request(app).get(`/accounts/${unknownId}`);
@@ -190,6 +226,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Account not found');
   });
 
+  // Test successful account update with valid fields
   test('PUT /accounts/:id updates an account', async () => {
     const res = await request(app)
       .put(`/accounts/${baseAccount._id}`)
@@ -201,6 +238,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Account updated');
   });
 
+  // Test successful account deletion and verify removal from database
   test('DELETE /accounts/:id removes an account', async () => {
     const res = await request(app).delete(`/accounts/${baseAccount._id}`);
 
@@ -214,6 +252,7 @@ describe('Accounts API', () => {
     expect(after.body.message).toBe('Account not found');
   });
 
+  // Test 404 response when updating non-existent account
   test('PUT /accounts/:id returns 404 when account is missing', async () => {
     const unknownId = new mongoose.Types.ObjectId().toString();
     const res = await request(app)
@@ -225,6 +264,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Account not found');
   });
 
+  // Test validation - at least one field required for updates
   test('PUT /accounts/:id fails with empty body', async () => {
     const res = await request(app)
       .put(`/accounts/${baseAccount._id}`)
@@ -235,6 +275,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Provide at least one field to update.');
   });
 
+  // Test field whitelist - unknown fields should be rejected
   test('PUT /accounts/:id rejects unknown fields', async () => {
     const res = await request(app)
       .put(`/accounts/${baseAccount._id}`)
@@ -245,6 +286,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Field "favoriteFood" cannot be updated.');
   });
 
+  // Test username length validation - minimum 2 characters
   test('PUT /accounts/:id enforces username length', async () => {
     const res = await request(app)
       .put(`/accounts/${baseAccount._id}`)
@@ -255,6 +297,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('username must be at least 2 characters.');
   });
 
+  // Test preferences field type - must be an array of strings
   test('PUT /accounts/:id validates preferences array', async () => {
     const res = await request(app)
       .put(`/accounts/${baseAccount._id}`)
@@ -265,6 +308,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('preferences must be an array of strings');
   });
 
+  // Test venueDetails field type - must be an object
   test('PUT /accounts/:id validates venueDetails object', async () => {
     const res = await request(app)
       .put(`/accounts/${baseAccount._id}`)
@@ -275,6 +319,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('venueDetails must be an object');
   });
 
+  // Test isVerified field type - must be a boolean
   test('PUT /accounts/:id validates isVerified type', async () => {
     const res = await request(app)
       .put(`/accounts/${baseAccount._id}`)
@@ -285,6 +330,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('isVerified must be a boolean');
   });
 
+  // Test request body type - must be a JSON object, not an array
   test('PUT /accounts/:id rejects non-object payloads', async () => {
     const res = await request(app)
       .put(`/accounts/${baseAccount._id}`)
@@ -295,6 +341,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Request body must be a JSON object.');
   });
 
+  // Test role update validation - only 'user' or 'venue' allowed
   test('PUT /accounts/:id rejects invalid role updates', async () => {
     const res = await request(app)
       .put(`/accounts/${baseAccount._id}`)
@@ -305,6 +352,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Role must be "user" or "venue"');
   });
 
+  // Test 404 response when deleting non-existent account
   test('DELETE /accounts/:id returns 404 when account is missing', async () => {
     const unknownId = new mongoose.Types.ObjectId().toString();
     const res = await request(app).delete(`/accounts/${unknownId}`);
@@ -314,6 +362,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Account not found');
   });
 
+  // Test database health check - should return 503 when DB is down
   test('POST /accounts returns 503 when database is unavailable', async () => {
     jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(false);
 
@@ -331,6 +380,7 @@ describe('Accounts API', () => {
     expect(res.body.message).toBe('Database not available');
   });
 
+  // Test service layer error propagation - database errors should bubble up
   test('updateAccountService surfaces database errors', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const spy = jest
@@ -352,6 +402,7 @@ describe('Accounts API', () => {
     consoleSpy.mockRestore();
   });
 
+  // Test document normalization - should convert _id to id and remove __v
   test('updateAccountService normalizes the updated document on success', async () => {
     jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(true);
 
@@ -390,6 +441,7 @@ describe('Accounts API', () => {
     expect(result).not.toHaveProperty('__v');
   });
 
+  // Test delete service error propagation
   test('deleteAccountService surfaces database errors', async () => {
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const spy = jest.spyOn(Account, 'findByIdAndDelete').mockImplementation(() => {
@@ -405,6 +457,7 @@ describe('Accounts API', () => {
     consoleSpy.mockRestore();
   });
 
+  // Test delete service return values - true when deleted, false when not found
   test('deleteAccountService returns true when a document is deleted and false otherwise', async () => {
     jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(true);
     const doc = { _id: new mongoose.Types.ObjectId() };

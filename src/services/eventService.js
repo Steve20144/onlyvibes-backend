@@ -2,20 +2,29 @@
 import Event from '../models/event.js';
 import { isDbConnected } from '../utils/dbHealth.js';
 
+/**
+ * Logs debug messages for the event service if debugging is enabled.
+ * @param {...any} args - The messages to log.
+ */
 const logEventServiceDebug = (...args) => {
   if (process.env.DEBUG_EVENTS === 'true' || process.env.DEBUG === 'true') {
     console.log('[EVENT_SERVICE]', ...args);
   }
 };
 
+/**
+ * Logs error messages for the event service.
+ * @param {...any} args - The error messages to log.
+ */
 const logEventServiceError = (...args) => {
   console.error('[EVENT_SERVICE]', ...args);
 };
 
 /**
- * Normalize a Mongoose document to a plain JS object and ensure `id` field exists.
- * @param {object} doc
- * @returns {object|null}
+ * Normalizes a Mongoose document into a plain JavaScript object,
+ * converting `_id` to `id` and removing the version key `__v`.
+ * @param {object} doc - The Mongoose document to normalize.
+ * @returns {object|null} The normalized object, or null if the input is falsy.
  */
 const normalizeEventDoc = (doc) => {
   if (!doc) return null;
@@ -32,12 +41,10 @@ const normalizeEventDoc = (doc) => {
 };
 
 /**
- * Helper: normalize category/category-style payloads
- * Accepts:
- *  - category: "Music"
- *  - category: ["Music", "Techno"]
- *  - categories: "Music,Techno"
- *  - categories: ["Music", "Techno"]
+ * Normalizes category-related input from various formats into a consistent array of strings.
+ * It can handle single strings, comma-separated strings, or arrays of strings.
+ * @param {object} payload - The input payload which may contain `category` or `categories`.
+ * @returns {string[]} An array of category strings.
  */
 const normalizeCategoryInput = (payload) => {
   let category = payload.category ?? payload.categories;
@@ -57,10 +64,12 @@ const normalizeCategoryInput = (payload) => {
 };
 
 /**
- * List events with optional filters.
+ * Retrieves a list of events, with optional filtering by category and location.
  * @async
- * @param {{category?:string,location?:string}} filters
- * @returns {Promise<object[]>}
+ * @param {object} [filters={}] - The filter criteria.
+ * @param {string} [filters.category] - The category to filter by.
+ * @param {string} [filters.location] - The location to filter by (case-insensitive).
+ * @returns {Promise<object[]>} A promise that resolves to an array of event objects.
  */
 export const listEventsService = async (filters = {}) => {
   const { category, location } = filters;
@@ -98,10 +107,10 @@ export const listEventsService = async (filters = {}) => {
 };
 
 /**
- * Get one event by Mongo _id (string).
+ * Retrieves a single event by its MongoDB `_id`.
  * @async
- * @param {string} id
- * @returns {Promise<object|null>}
+ * @param {string} id - The ID of the event to retrieve.
+ * @returns {Promise<object|null>} A promise that resolves to the event object, or null if not found.
  */
 export const getEventByIdService = async (id) => {
   if (!isDbConnected()) {
@@ -126,18 +135,17 @@ export const getEventByIdService = async (id) => {
 };
 
 /**
- * Create a new event.
+ * Creates a new event with the given payload.
  * @async
- * @param {object} payload
- * @param {string} payload.creatorId
- * @param {string} payload.title
- * @param {string} [payload.description]
- * @param {string} payload.location
- * @param {string|Date} payload.dateTime
- * @param {string|string[]} [payload.category]
- * @param {string|string[]} [payload.categories] // legacy / frontend confusion
- * @param {string} [payload.imageUrl]
- * @returns {Promise<object>}
+ * @param {object} payload - The data for the new event.
+ * @param {string} payload.creatorId - The ID of the user creating the event.
+ * @param {string} payload.title - The title of the event.
+ * @param {string} [payload.description] - The description of the event.
+ * @param {string} payload.location - The location of the event.
+ * @param {string|Date} payload.dateTime - The date and time of the event.
+ * @param {string|string[]} [payload.category] - The categories of the event.
+ * @param {string} [payload.imageUrl] - The URL for the event's image.
+ * @returns {Promise<object>} A promise that resolves to the newly created event object.
  */
 export const createEventService = async (payload) => {
   if (!isDbConnected()) {
@@ -181,11 +189,11 @@ export const createEventService = async (payload) => {
 };
 
 /**
- * Update an existing event.
+ * Updates an existing event with new data.
  * @async
- * @param {string} id
- * @param {object} updates
- * @returns {Promise<object|null>}
+ * @param {string} id - The ID of the event to update.
+ * @param {object} updates - An object containing the fields to update.
+ * @returns {Promise<object|null>} A promise that resolves to the updated event object, or null if not found.
  */
 export const updateEventService = async (id, updates) => {
   if (!isDbConnected()) {
@@ -234,10 +242,10 @@ export const updateEventService = async (id, updates) => {
 };
 
 /**
- * Delete an event by id.
+ * Deletes an event by its ID.
  * @async
- * @param {string} id
- * @returns {Promise<boolean>}
+ * @param {string} id - The ID of the event to delete.
+ * @returns {Promise<boolean>} A promise that resolves to true if the deletion was successful, false otherwise.
  */
 export const deleteEventService = async (id) => {
   if (!isDbConnected()) {
@@ -260,10 +268,10 @@ export const deleteEventService = async (id) => {
 };
 
 /**
- * Get events liked by a specific user.
- * NOTE: This is a placeholder. Implementation depends on how you model likes.
- * @param {string} userId
- * @returns {Promise<object[]>}
+ * Retrieves events liked by a specific user.
+ * NOTE: This is a placeholder and is not yet implemented.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<object[]>} A promise that resolves to an array of liked event objects.
  */
 export const getLikedEventsByUserService = async (userId) => {
   if (!userId) return [];

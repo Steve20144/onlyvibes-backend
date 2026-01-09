@@ -11,22 +11,46 @@ import {
 
 const router = Router();
 
-// GET /events - list / filter events
+/**
+ * @route   GET /events
+ * @desc    Get a list of events, with optional filtering
+ * @access  Public
+ */
 router.get('/', listEvents);
 
-// GET /events/:id - get a single event
+/**
+ * @route   GET /events/:id
+ * @desc    Get a single event by its ID
+ * @access  Public
+ */
 router.get('/:id', getEventById);
 
-// POST /events - create an event
+/**
+ * @route   POST /events
+ * @desc    Create a new event
+ * @access  Private (requires authentication)
+ */
 router.post('/', createEvent);
 
-// PUT /events/:id - update an event
+/**
+ * @route   PUT /events/:id
+ * @desc    Update an existing event by its ID
+ * @access  Private (requires authentication and ownership)
+ */
 router.put('/:id', updateEvent);
 
-// DELETE /events/:id - delete an event
+/**
+ * @route   DELETE /events/:id
+ * @desc    Delete an event by its ID
+ * @access  Private (requires authentication and ownership)
+ */
 router.delete('/:id', deleteEvent);
 
-// GET /events/liked/:userId - list liked events for user
+/**
+ * @route   GET /events/liked/:userId
+ * @desc    Get a list of events liked by a specific user
+ * @access  Public
+ */
 router.get('/liked/:userId', listLikedEvents);
 
 

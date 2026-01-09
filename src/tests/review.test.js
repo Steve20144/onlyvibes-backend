@@ -1,4 +1,17 @@
 // src/tests/review.test.js
+/**
+ * Integration tests for Reviews API endpoints.
+ * 
+ * This test suite validates:
+ * - Review listing per event (GET /events/:eventId/reviews)
+ * - Single review retrieval (GET /events/:eventId/reviews/:reviewId)
+ * - Review creation (POST /events/:eventId/reviews) with duplicate prevention
+ * - Review updates (PUT /events/:eventId/reviews/:reviewId)
+ * - Review deletion (DELETE /events/:eventId/reviews/:reviewId)
+ * - Reviewed events by account (GET /accounts/:accountId/reviewed-events)
+ * - Rating boundaries (1-5) and validation
+ * - Database availability handling
+ */
 import request from 'supertest';
 import { jest } from '@jest/globals';
 import app from '../app.js';
@@ -9,13 +22,20 @@ import { createReviewService } from '../services/reviewService.js';
 import { listReviewedEventsForAccount } from '../controllers/reviewController.js';
 import createTestDb from './utils/testDb.js';
 
+// Initialize in-memory MongoDB test database
 const testDb = createTestDb();
 const mongoose = testDb.getMongoose();
-let eventA;
-let eventB;
-let reviewA;
-let reviewB;
 
+// Test fixtures - populated in beforeEach
+let eventA;   // Music event
+let eventB;   // Sports event
+let reviewA;  // Review for eventA
+let reviewB;  // Review for eventB
+
+/**
+ * Seeds the database with sample events and reviews for testing.
+ * Creates two events with one review each.
+ */
 const seedEventsAndReviews = async () => {
   const creatorId = new mongoose.Types.ObjectId();
 
@@ -57,24 +77,33 @@ const seedEventsAndReviews = async () => {
   ]);
 };
 
+// Connect to in-memory MongoDB before all tests
 beforeAll(async () => {
   await testDb.connect();
 });
 
+// Disconnect from in-memory MongoDB after all tests
 afterAll(async () => {
   await testDb.disconnect();
 });
 
+// Setup: Clear database and seed test data before each test
 beforeEach(async () => {
   await testDb.clearDatabase();
   await seedEventsAndReviews();
 });
 
+// Restore all mocks after each test
 afterEach(() => {
   jest.restoreAllMocks();
 });
 
+/**
+ * Test suite for Reviews API endpoints.
+ * Covers CRUD operations for event reviews.
+ */
 describe('Reviews API', () => {
+  // Test listing reviews for a specific event
   test('GET /events/:eventId/reviews returns reviews for event', async () => {
     const res = await request(app).get(`/events/${eventA._id}/reviews`);
 
@@ -349,7 +378,12 @@ describe('Reviews API', () => {
   });
 });
 
+/**
+ * Test suite for reviewService edge cases.
+ * Validates error handling when database is unavailable.
+ */
 describe('reviewService edge cases', () => {
+  // Test database availability check in create operation
   test('createReviewService throws when the database is unavailable', async () => {
     jest.spyOn(dbHealth, 'isDbConnected').mockReturnValue(false);
 

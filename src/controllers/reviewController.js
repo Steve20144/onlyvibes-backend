@@ -11,9 +11,21 @@ import {
   ensureEventExistsService
 } from '../services/reviewService.js';
 
+/**
+ * Checks if a value is a valid MongoDB ObjectId string.
+ * @param {string} value - The value to check.
+ * @returns {boolean} True if the value is a valid ObjectId, false otherwise.
+ */
 const isValidObjectId = (value) =>
   typeof value === 'string' && mongoose.Types.ObjectId.isValid(value);
 
+/**
+ * Parses and validates a MongoDB ObjectId from a request parameter.
+ * @param {string} value - The ObjectId to parse.
+ * @param {string} label - A descriptive label for the ObjectId (e.g., 'event id').
+ * @returns {string} The validated ObjectId.
+ * @throws {Error} If the ObjectId is invalid.
+ */
 const parseObjectId = (value, label) => {
   if (!isValidObjectId(value)) {
     const err = new Error(`Invalid ${label}`);
@@ -23,6 +35,11 @@ const parseObjectId = (value, label) => {
   return value;
 };
 
+/**
+ * Ensures that an event with the given ID exists.
+ * @param {string} eventId - The ID of the event to check.
+ * @throws {Error} If the event is not found.
+ */
 const assertEventExists = async (eventId) => {
   const event = await ensureEventExistsService(eventId);
   if (!event) {
@@ -33,6 +50,11 @@ const assertEventExists = async (eventId) => {
   return event;
 };
 
+/**
+ * Validates a review rating.
+ * @param {number} rating - The rating to validate.
+ * @throws {Error} If the rating is not a number between 1 and 5.
+ */
 const validateRating = (rating) => {
   if (typeof rating !== 'number' || rating < 1 || rating > 5) {
     const err = new Error('Rating must be between 1 and 5');
@@ -42,7 +64,12 @@ const validateRating = (rating) => {
 };
 
 /**
- * GET /events/:eventId/reviews
+ * Handles the request to list all reviews for a specific event.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} A JSON response with the list of reviews.
  */
 export const listEventReviews = async (req, res, next) => {
   try {
@@ -65,7 +92,12 @@ export const listEventReviews = async (req, res, next) => {
 };
 
 /**
- * GET /events/:eventId/reviews/:reviewId
+ * Retrieves a single review by its ID for a specific event.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} The review data or an error message.
  */
 export const getReview = async (req, res, next) => {
   try {
@@ -92,7 +124,12 @@ export const getReview = async (req, res, next) => {
 };
 
 /**
- * POST /events/:eventId/reviews
+ * Handles the creation of a new review for an event.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} The created review data.
  */
 export const createReview = async (req, res, next) => {
   try {
@@ -138,7 +175,12 @@ export const createReview = async (req, res, next) => {
 };
 
 /**
- * PUT /events/:eventId/reviews/:reviewId
+ * Updates an existing review by its ID.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} The updated review data.
  */
 export const updateReview = async (req, res, next) => {
   try {
@@ -176,7 +218,12 @@ export const updateReview = async (req, res, next) => {
 };
 
 /**
- * DELETE /events/:eventId/reviews/:reviewId
+ * Deletes a review by its ID.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} A confirmation message.
  */
 export const deleteReview = async (req, res, next) => {
   try {
@@ -204,7 +251,12 @@ export const deleteReview = async (req, res, next) => {
 };
 
 /**
- * GET /accounts/:accountId/reviewed-events
+ * Retrieves a list of events that a user has reviewed.
+ * @async
+ * @param {import('express').Request} req - The Express request object.
+ * @param {import('express').Response} res - The Express response object.
+ * @param {import('express').NextFunction} next - The Express next middleware function.
+ * @returns {Promise<import('express').Response>} A list of reviewed events.
  */
 export const listReviewedEventsForAccount = async (req, res, next) => {
   try {

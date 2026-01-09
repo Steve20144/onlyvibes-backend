@@ -5,24 +5,35 @@ import cors from 'cors';
 import accountRoutes from './routes/accountRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
-import authRoutes from './routes/authRoutes.js';   // ⬅️ NEW
+import authRoutes from './routes/authRoutes.js';
 import { logRequest } from './utils/logger.js';
 
+/**
+ * The main Express application instance.
+ * @type {express.Application}
+ */
 const app = express();
 
+/**
+ * @description Enables Cross-Origin Resource Sharing (CORS) for all routes.
+ * This allows requests from any origin.
+ */
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 }));
 
 /**
- * Global middleware
+ * @description Global middleware for parsing incoming request bodies.
+ * It handles JSON payloads and URL-encoded data.
  */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /**
- * 🔍 Custom request logging middleware
+ * @description Custom middleware for logging incoming requests.
+ * It logs the method, URL, status code, and duration of each request.
+ * Passwords in the request body are masked for security.
  */
 app.use((req, res, next) => {
   const start = Date.now();
@@ -46,8 +57,11 @@ app.use((req, res, next) => {
 });
 
 /**
- * Health check
+ * @route   GET /health
+ * @desc    Health check endpoint to verify that the API is running.
+ * @access  Public
  */
+// eslint-disable-next-line no-unused-vars
 app.get('/health', (req, res) => {
   return res.status(200).json({
     success: true,
@@ -58,9 +72,8 @@ app.get('/health', (req, res) => {
 });
 
 /**
- * Routes
- *
- * NOTE:
+ * @description Mounts the application's routes.
+ * Each set of routes is handled by a separate router file.
  * - accountRoutes is mounted at /accounts
  * - eventRoutes is mounted at /events
  * - reviewRoutes defines its own base path internally (as before)
@@ -69,12 +82,13 @@ app.get('/health', (req, res) => {
 app.use('/accounts', accountRoutes);
 app.use('/events', eventRoutes);
 app.use(reviewRoutes);
-app.use(authRoutes); // ⬅️ NEW: exposes /auth/signup and /auth/login
+app.use(authRoutes);
 
 /**
- * 404 handler
+ * @description Middleware for handling 404 Not Found errors.
+ * This is triggered when a request is made to a non-existent route.
  */
-app.use((req, res, next) => {
+app.use((req, res) => {
   return res.status(404).json({
     success: false,
     data: null,
@@ -84,8 +98,11 @@ app.use((req, res, next) => {
 });
 
 /**
- * Centralized error handler
+ * @description Centralized error handling middleware.
+ * It catches and processes errors from any part of the application.
+ * It sends a formatted JSON response based on the error type.
  */
+// eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
 

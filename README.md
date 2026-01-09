@@ -136,8 +136,8 @@ docs/
 
 ## Testing & Coverage
 - **Tooling:** Jest 30 drives the suites with `supertest` for HTTP assertions and `mongodb-memory-server` for fully isolated databases per file. Everything runs in native ESM mode (`node --experimental-vm-modules`).
-- **Running locally:** `npm test` executes the full matrix; append `-- --coverage` to refresh Istanbul output in `coverage/`. No external Mongo instance is required.
-- **Coverage expectations:** All feature areas maintain ≥80% statements/branches/functions/lines. Services normalize Mongoose documents (`_id` → `id`) and log guarded errors so regressions surface quickly.
+- **Running locally:** `npm test` executes the full matrix and the CI logs the `--coverage` metrics. No external Mongo instance is required.
+- **Coverage expectations:** All feature areas maintain ≥90% statements/branches/functions/lines. Services normalize Mongoose documents (`_id` → `id`) and log guarded errors so regressions surface quickly.
 - **Continuous integration:** The GitHub workflow runs the same command plus linting, blocking merges if any suite fails or coverage regresses.
 - **Deep-dive report:** [`Coverage.md`](docs/Coverage.md) summarizes the 140+ Jest scenarios with notes per suite so reviewers can trace every assertion.
 
@@ -169,27 +169,104 @@ Each suite seeds its own fixtures, masks secrets in logs, and leaves the databas
 
 ## CI/CD Pipeline
 
-The project uses **GitHub Actions** for continuous integration and deployment. The workflow is defined in `.github/workflows/ci.yml` and triggers on every push to `main` and on pull requests.
+The project uses **GitHub Actions** for continuous integration, performance regression checks, and deployment. The workflow is defined in `.github/workflows/ci.yml` and triggers on:
+- pushes to `main` and `staging`
+- pull requests targeting `main`
 
 ### CI Job
 Runs on `ubuntu-latest` with Node.js 22:
 1. **Checkout** – Clones the repository
 2. **Install Dependencies** – Runs `npm install`
 3. **Run Tests with Coverage** – Executes `npm test -- --coverage` using Jest and mongodb-memory-server
-4. **Print Coverage Metrics** – Parses `coverage/coverage-summary.json` and logs statement, branch, function, and line coverage percentages
-5. **Upload Coverage Artifact** – Stores the HTML coverage report as a downloadable artifact
+4. **Upload Coverage Artifact** – Stores the HTML coverage report (`coverage/`) as a downloadable artifact
+
+### Performance Job
+Runs after the CI job succeeds:
+1. **Start MongoDB service** – Uses a `mongo:7` service container
+2. **Start backend** – Boots the API on `PORT=3000` against the CI MongoDB
+3. **Seed performance data** – Creates 100 events via `scripts/seedPerfEvents.js` (unique prefix per run)
+4. **Install k6** – Installs the k6 CLI on the runner
+5. **Run k6 suites** – Executes the account and events load/spike tests
+6. **Cleanup** – Deletes seeded events (always runs)
 
 ### CD Job
-Runs after the CI job succeeds:
+Runs after the performance job succeeds (only on pushes to `main`):
 1. **Deploy to Render** – Uses the `render-deploy-action` to trigger a deployment on [Render](https://render.com) using `RENDER_SERVICE_ID` and `RENDER_API_KEY` secrets
 
-> Pull requests must pass the CI job before merging. Deployments to Render only occur on pushes to `main`.
+> Pull requests must pass the CI + performance jobs before merging. Deployments to Render only occur on pushes to `main`.
 
 ---
 
-## Known Gaps / Next Steps
-1. Implement a real "liked events" model so `GET /events/liked/:userId` returns data instead of an empty array.
-2. Extend auth-protected routes to actually use `authenticate` and gate event creation/update/deletion by role.
-3. Add email & password hashing to account creation (currently handled only via `auth/signup`).
-4. Publish an updated Swagger export whenever new endpoints land to avoid drift.
+## Deliverable 3: Dynamic Testing (k6)
 
+This deliverable adds **two Load Tests and two Spike Tests** using **k6**, executed against the **Backend API running inside GitHub Actions CI** (not Render). The goal is to keep the pipeline green by calibrating VUs **below the system’s breaking point** and enforcing **non-functional requirements** (latency / errors / correctness) via k6 thresholds.
+
+### Routes covered
+- `GET /events` (load + spike)
+- `GET /accounts/:id` (load + spike)
+
+### CI realism guardrails (seeded dataset)
+In the CI performance job we seed the DB with **100 events** before running the `GET /events` performance tests, and clean them up afterwards. The k6 checks enforce a **minimum returned payload size** (via `REQUIRE_MIN_EVENTS=1` and `MIN_EVENTS=100`) to prevent “false green” results when the DB is empty.
+
+### Calibrated VUs (GitHub runners)
+- `GET /events` load test: `TARGET_VUS=240` (final)
+- `GET /events` spike test: `SPIKE_VUS=150` (final)
+
+> Note: The CI performance job typically takes ~18–19 minutes on GitHub runners (install deps, start API, seed, install k6, run tests, cleanup).
+
+### Test definitions & thresholds
+
+#### `GET /events`
+- Load test: [k6/tests/get-events.load.js](k6/tests/get-events.load.js)
+   - Stages: warmup (10% of target) → ramp to 240 → hold 5m → cooldown
+   - Thresholds (scoped by `endpoint:get_events` tag):
+      - `checks`: `rate > 0.99`
+      - `http_req_duration`: `p(95) < 1300ms`, `p(99) < 1500ms`
+      - `http_req_failed`: `rate < 0.01`
+
+- Spike test: [k6/tests/get-events.spike.js](k6/tests/get-events.spike.js)
+   - Stages: baseline (10% of spike) → 5s ramp to 150 → hold 45s → recovery → ramp down
+   - Thresholds (scoped by `endpoint:get_events_spike` tag):
+      - `checks`: `rate > 0.97`
+      - `http_req_duration`: `p(95) < 1500ms`, `p(99) < 2500ms`
+      - `http_req_failed`: `rate < 0.02`
+
+#### `GET /accounts/:id`
+- Load test: [k6/tests/account.load.js](k6/tests/account.load.js)
+   - Stages: 50 VUs warmup → 500 VUs hold → cooldown
+   - Thresholds:
+      - `http_req_failed`: `rate < 0.01`
+      - `http_req_duration`: `p(95) < 500ms`
+
+- Spike test: [k6/tests/account.spike.js](k6/tests/account.spike.js)
+   - Stages: 100 VUs baseline → spike to 2500 VUs → recovery → stop
+   - Thresholds:
+      - `http_req_failed`: `rate < 0.05`
+      - `http_req_duration`: `p(95) < 2000ms`
+
+
+---
+
+## Deliverable 3: Code Quality (Cyclopt Panorama)
+
+Code quality was assessed using Cyclopt (Cyclopt Panorama / Cyclopt Companion). Snapshot (branch: `staging`):
+
+![Cyclopt Panorama snapshot](docs/images/cyclopt-panorama.png)
+
+- Overall Project Rating: **A**
+- Maintainability: **B+**
+- Security: **A+**
+- Readability: **A**
+- Reusability: **A**
+
+Analysis metrics:
+- Total Logical LoC analyzed: **4321**
+- Total Physical LoC analyzed: **6622**
+- Files analyzed: **42**
+- Duplicate code: **<1%**
+- Maintainability Index: **113.1**
+- Cyclomatic Complexity: **1.68**
+- Total violations: **0**
+- Code effort (days): **71.38**
+
+---
